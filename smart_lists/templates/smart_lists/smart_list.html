@@ -1,0 +1,26 @@
+<div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+            {% for header in smart_list.columns %}
+{#            <th>{% ordering_link field_name='company_name' label='Name' %}</th>#}
+            {{ header.render}}
+            {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+      {% for item in smart_list.items %}
+        <tr class="{% if account.balance > 0 %}text-danger{% endif %}">
+            {% for field in item.fields %}
+                {% if forloop.first %}
+                    {{ field.render_link }}
+                {% else %}
+                    {{ field.render }}
+                {% endif %}
+            {% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% include 'smart_lists/pagination.html' %}
