@@ -1,7 +1,7 @@
 from django import template
 from django.utils.safestring import mark_safe
 
-from list_tags.helpers import SmartList
+from smart_lists.helpers import SmartList
 
 register = template.Library()
 
