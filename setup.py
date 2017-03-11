@@ -8,5 +8,5 @@ setup(name='django-smart-lists',
       author='Kristian Oellegaard',
       author_email='kristian@kristian.io',
       url='https://github.com/plecto/django-smart-lists',
-      packages=['smart_lists'],
+      packages=['smart_lists', 'smart_lists.templatetags'],
 )
