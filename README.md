@@ -22,3 +22,9 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 {% endblock %}
 
 ```
+
+### License
+
+MIT License
+
+Copyright (c) 2017 Plecto
