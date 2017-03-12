@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name='django-smart-lists',
-      version='1.0.8',
+      version='1.0.10',
       description='Easy lists for django views',
       author='Kristian Oellegaard',
       author_email='kristian@kristian.io',
