@@ -99,20 +99,20 @@ class SmartListTestCase(TestCase):
         )
 
     def test_smart_order(self):
-        so = SmartOrder('1.2', 1)
+        so = SmartOrder({'o': '1.2'}, 1, 'o')
         self.assertEqual(so.is_ordered(), True)
         self.assertEqual(so.is_reverse(), False)
 
-        so = SmartOrder('-1.2', 1)
+        so = SmartOrder({'o': '-1.2'}, 1, 'o')
         self.assertEqual(so.is_ordered(), True)
         self.assertEqual(so.is_reverse(), True)
 
-        so = SmartOrder('-1.2', 2)
+        so = SmartOrder({'o': '-1.2'}, 2, 'o')
         self.assertEqual(so.is_ordered(), True)
         self.assertEqual(so.is_reverse(), False)
-        self.assertEqual(so.get_add_sort_by(), '2.-1')
+        self.assertEqual(so.get_add_sort_by(), '?o=2.-1')
 
-        so = SmartOrder('1', 1)
+        so = SmartOrder({'o': '1'}, 1, 'o')
         self.assertEqual(so.is_ordered(), True)
         self.assertEqual(so.is_reverse(), False)
-        self.assertEqual(so.get_add_sort_by(), '-1')
+        self.assertEqual(so.get_add_sort_by(), '?o=-1')

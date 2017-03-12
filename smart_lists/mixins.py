@@ -20,6 +20,10 @@ class SmartListMixin(object):
             if isinstance(ordering, six.string_types):
                 ordering = (ordering,)
             qs = qs.order_by(*ordering)
+        filters = self.get_filters()
+        if filters:
+            for fltr in filters:
+                qs = qs.filter(**fltr)
         return qs
 
     def get_ordering(self):
@@ -35,7 +39,7 @@ class SmartListMixin(object):
                         order = int(order[1:])
                     else:
                         order = int(order)
-                    sc = SmartColumn(self.model, self.list_display[order-1], i, custom_order)
+                    sc = SmartColumn(self.model, self.list_display[order-1], i, self.request.GET, self.ordering_query_parameter_name)
                     ordering.append(
                         '{}{}'.format(prefix, sc.order_field)
                     )
@@ -44,6 +48,13 @@ class SmartListMixin(object):
             return ordering
         return self.ordering
 
+    def get_filters(self):
+        flters = []
+        for param, value in self.request.GET.items():
+            if param in self.list_filter:
+                flters.append({param: value})
+        return flters
+
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
         ctx.update({
@@ -51,7 +62,8 @@ class SmartListMixin(object):
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
                 'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, ''),
-                'ordering_query_param': self.ordering_query_parameter_name
+                'ordering_query_param': self.ordering_query_parameter_name,
+                'query_params': self.request.GET
             }
         })
         return ctx
