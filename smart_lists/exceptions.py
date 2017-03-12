@@ -1,0 +1,4 @@
+
+
+class SmartListException(Exception):
+    pass

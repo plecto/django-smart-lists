@@ -1,5 +1,7 @@
 import six
 
+from smart_lists.exceptions import SmartListException
+
 
 class SmartListMixin(object):
     list_display = ()  # type: Tuple[str]
@@ -20,9 +22,24 @@ class SmartListMixin(object):
         return qs
 
     def get_ordering(self):
-        custom_order = self.request.GET.get('order_by')
-        if custom_order and custom_order in self.ordering_allowed_fields:
-            return [custom_order]
+        custom_order = self.request.GET.get('o')
+        if custom_order:
+            order_list = custom_order.split(".")
+            ordering = []
+            for order in order_list:
+                prefix = ''
+                try:
+                    if order.startswith("-"):
+                        prefix = '-'
+                        order = int(order[1:])
+                    else:
+                        order = int(order)
+                    ordering.append(
+                        '{}{}'.format(prefix, self.list_display[order-1])
+                    )
+                except (ValueError, IndexError) as e:
+                    raise SmartListException("Illegal ordering")
+            return ordering
         return self.ordering
 
     def get_context_data(self, **kwargs):

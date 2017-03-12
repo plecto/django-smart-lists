@@ -11,4 +11,5 @@ setup(name='django-smart-lists',
       include_package_data=True,
       packages=['smart_lists', 'smart_lists.templatetags'],
       package_data={'smart_lists' : ['templates/smart_lists/*']},
+      install_requires=['Django']
 )
