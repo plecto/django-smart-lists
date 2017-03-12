@@ -142,10 +142,13 @@ class SmartColumn(object):
             self.order = None
 
     def get_title(self):
+        field = getattr(self.model, self.field_name)
         if self.model_field:
             return self.model_field.verbose_name.title()
-        if self.field_name == '__str__':
+        elif self.field_name == '__str__':
             return self.model._meta.verbose_name.title()
+        elif callable(field) and getattr(field, 'short_description'):
+            return field.short_description
         return self.field_name.title()
 
 

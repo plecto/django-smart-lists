@@ -1,6 +1,7 @@
 import six
 
 from smart_lists.exceptions import SmartListException
+from smart_lists.helpers import SmartColumn
 
 
 class SmartListMixin(object):
@@ -26,7 +27,7 @@ class SmartListMixin(object):
         if custom_order:
             order_list = custom_order.split(".")
             ordering = []
-            for order in order_list:
+            for i, order in enumerate(order_list, start=1):
                 prefix = ''
                 try:
                     if order.startswith("-"):
@@ -34,8 +35,9 @@ class SmartListMixin(object):
                         order = int(order[1:])
                     else:
                         order = int(order)
+                    sc = SmartColumn(self.model, self.list_display[order-1], i, custom_order)
                     ordering.append(
-                        '{}{}'.format(prefix, self.list_display[order-1])
+                        '{}{}'.format(prefix, sc.order_field)
                     )
                 except (ValueError, IndexError) as e:
                     raise SmartListException("Illegal ordering")
@@ -48,7 +50,8 @@ class SmartListMixin(object):
             'smart_list_settings': {
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
-                'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, '')
+                'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, ''),
+                'ordering_query_param': self.ordering_query_parameter_name
             }
         })
         return ctx
