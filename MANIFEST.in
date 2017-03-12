@@ -1,2 +1,1 @@
-include smart_lists/templates/*
-include smart_lists/templates/smart_lists/*
+recursive-include smart_lists/templates *
