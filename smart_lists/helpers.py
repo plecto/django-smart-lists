@@ -56,11 +56,71 @@ class SmartListItem(object):
         ]
 
 
+class SmartOrder(object):
+    def __init__(self, query_order, column_id):
+        self.query_order = query_order
+        self.column_id = column_id
+        self.current_columns = [int(col) for col in self.query_order.replace("-", "").split(".")] if query_order else []
+        self.current_columns_length = len(self.current_columns)
+
+    @property
+    def priority(self):
+        if self.is_ordered():
+            return self.current_columns.index(self.column_id) + 1
+
+    def is_ordered(self):
+        return self.column_id in self.current_columns
+
+    def is_reverse(self):
+        for column in self.query_order.split('.'):
+            c = column.replace("-", "")
+            if int(c) == self.column_id:
+                if column.startswith("-"):
+                    return True
+        return False
+
+    def get_add_sort_by(self):
+        if not self.is_ordered():
+            if self.query_order:
+                return '{}.{}'.format(self.column_id, self.query_order)
+            else:
+                return self.column_id
+        elif self.current_columns_length > 1:
+            if not self.is_reverse() and self.current_columns[0] == self.column_id:
+                return '-{}.{}'.format(self.column_id, self.get_remove_sort_by())
+            else:
+                return '{}.{}'.format(self.column_id, self.get_remove_sort_by())
+
+        else:
+            return self.get_reverse_sort_by()
+
+    def get_remove_sort_by(self):
+        new_query = []
+        for column in self.query_order.split('.'):
+            c = column.replace("-", "")
+            if not int(c) == self.column_id:
+                new_query.append(column)
+        return ".".join(new_query)
+
+    def get_reverse_sort_by(self):
+        new_query = []
+        for column in self.query_order.split('.'):
+            c = column.replace("-", "")
+            if int(c) == self.column_id:
+                if column.startswith("-"):
+                    new_query.append(c)
+                else:
+                    new_query.append('-{}'.format(c))
+            else:
+                new_query.append(column)
+
+        return ".".join(new_query)
+
+
 class SmartColumn(object):
-    def __init__(self, model, field, column_order):
+    def __init__(self, model, field, column_id, query_order):
         self.model = model
         self.field_name = field
-        self.column_order = column_order
 
         self.order_field = None
         if self.field_name.startswith("_") and self.field_name != "__str__":
@@ -76,6 +136,11 @@ class SmartColumn(object):
             if callable(field) and getattr(field, 'alters_data', False):
                 raise SmartListException("Cannot use a function that alters data in smart list")
 
+        if self.order_field:
+            self.order = SmartOrder(query_order=query_order, column_id=column_id)
+        else:
+            self.order = None
+
     def get_title(self):
         if self.model_field:
             return self.model_field.verbose_name.title()
@@ -83,23 +148,14 @@ class SmartColumn(object):
             return self.model._meta.verbose_name.title()
         return self.field_name.title()
 
-    def get_query_order(self):
-        return self.column_order if self.order_field else None
-
-    def render(self):
-        if self.order_field:
-            return format_html('<th><a href="?o={order}">{label}</a></th>', order=self.get_query_order(),
-                               label=self.get_title())
-        else:
-            return format_html('<th>{label}</th>', field_name=self.field_name, label=self.get_title())
-
 
 class SmartList(object):
     def __init__(self, object_list, list_settings):
         self.object_list = object_list
         self.model = object_list.model
         self.list_display = list_settings.get('list_display')
-        self.columns = [SmartColumn(self.model, field, i) for i, field in enumerate(self.list_display, start=1)] or [SmartColumn(self.model, '__str__', 1)]
+        self.ordering_query_value = list_settings.get('ordering_query_value', '')
+        self.columns = [SmartColumn(self.model, field, i, self.ordering_query_value) for i, field in enumerate(self.list_display, start=1)] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value)]
 
 
     @property

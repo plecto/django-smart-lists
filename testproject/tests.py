@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.views.generic import ListView
 
 from smart_lists.exceptions import SmartListException
-from smart_lists.helpers import SmartList
+from smart_lists.helpers import SmartList, SmartOrder
 from smart_lists.mixins import SmartListMixin
 from testproject.models import SampleModel
 
@@ -55,13 +55,13 @@ class SmartListTestCase(TestCase):
         )
 
         self.assertEqual(smart_list.columns[0].order_field, 'title')
-        self.assertEqual(smart_list.columns[0].get_query_order(), 1)
+        self.assertEqual(smart_list.columns[0].order.column_id, 1)
         self.assertEqual(smart_list.columns[1].order_field, 'category')
-        self.assertEqual(smart_list.columns[1].get_query_order(), 2)
+        self.assertEqual(smart_list.columns[1].order.column_id, 2)
         self.assertEqual(smart_list.columns[2].order_field, None)
-        self.assertEqual(smart_list.columns[2].get_query_order(), None)
+        self.assertEqual(smart_list.columns[2].order, None)
         self.assertEqual(smart_list.columns[3].order_field, 'category')
-        self.assertEqual(smart_list.columns[3].get_query_order(), 4)
+        self.assertEqual(smart_list.columns[3].order.column_id, 4)
 
     def test_ordering_in_queryset(self):
         class SampleModelListView(SmartListMixin, ListView):
@@ -97,3 +97,22 @@ class SmartListTestCase(TestCase):
             SmartListException,
             view.get_ordering
         )
+
+    def test_smart_order(self):
+        so = SmartOrder('1.2', 1)
+        self.assertEqual(so.is_ordered(), True)
+        self.assertEqual(so.is_reverse(), False)
+
+        so = SmartOrder('-1.2', 1)
+        self.assertEqual(so.is_ordered(), True)
+        self.assertEqual(so.is_reverse(), True)
+
+        so = SmartOrder('-1.2', 2)
+        self.assertEqual(so.is_ordered(), True)
+        self.assertEqual(so.is_reverse(), False)
+        self.assertEqual(so.get_add_sort_by(), '2.-1')
+
+        so = SmartOrder('1', 1)
+        self.assertEqual(so.is_ordered(), True)
+        self.assertEqual(so.is_reverse(), False)
+        self.assertEqual(so.get_add_sort_by(), '-1')

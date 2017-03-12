@@ -2,8 +2,26 @@
     <table class="table table-striped">
       <thead>
         <tr>
-            {% for header in smart_list.columns %}
-                {{ header.render}}
+            {% for column in smart_list.columns %}
+                <th>{% if column.order %}
+                        <a href="?o={{ column.order.get_add_sort_by }}">{{ column.get_title }}</a>
+                        {% if column.order.is_ordered %}
+                            <div class="pull-right">
+                                {% if column.order.current_columns_length > 1 %}{{ column.order.priority }}{% endif %}
+                                <a href="?o={{ column.order.get_reverse_sort_by }}">
+                                    {% if column.order.is_reverse %}
+                                        <span class="glyphicon glyphicon-sort-by-attributes-alt"></span>
+                                    {% else %}
+                                        <span class="glyphicon glyphicon-sort-by-attributes"></span>
+                                    {% endif %}
+                                </a>
+                                <a href="?o={{ column.order.get_remove_sort_by }}">X</a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        {{ column.get_title }}
+                    {% endif %}
+                </th>
             {% endfor %}
         </tr>
       </thead>
@@ -11,11 +29,13 @@
       {% for item in smart_list.items %}
         <tr>
             {% for field in item.fields %}
+            <td>
                 {% if forloop.first %}
-                    {{ field.render_link }}
+                    <strong><a href="{{ field.object.get_absolute_url }}">{{ field.get_value }}</a></strong>
                 {% else %}
-                    {{ field.render }}
+                    {{ field.get_value }}
                 {% endif %}
+            </td>
             {% endfor %}
         </tr>
       {% endfor %}

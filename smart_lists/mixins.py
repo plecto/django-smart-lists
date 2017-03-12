@@ -10,7 +10,7 @@ class SmartListMixin(object):
     date_hierarchy = ''
 
     ordering = []  # type: List[str]
-    ordering_allowed_fields = []  # type: List[str]
+    ordering_query_parameter_name = 'o'
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
@@ -22,7 +22,7 @@ class SmartListMixin(object):
         return qs
 
     def get_ordering(self):
-        custom_order = self.request.GET.get('o')
+        custom_order = self.request.GET.get(self.ordering_query_parameter_name)
         if custom_order:
             order_list = custom_order.split(".")
             ordering = []
@@ -48,6 +48,7 @@ class SmartListMixin(object):
             'smart_list_settings': {
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
+                'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, '')
             }
         })
         return ctx
