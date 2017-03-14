@@ -15,7 +15,7 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 ```html
 
 {% extends "base.html" %}
-{% load smart_lists %}
+{% load smart_list %}
 
 {% block content %}
     {% smart_list %}
