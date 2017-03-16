@@ -32,7 +32,7 @@ class SmartListMixin(object):
 
     def get_search_results(self, queryset):
         """
-        borrowed from djang-admin
+        borrowed from django-admin
         @param queryset:
         @return: filtered queryset
         """
