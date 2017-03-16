@@ -116,3 +116,22 @@ class SmartListTestCase(TestCase):
         self.assertEqual(so.is_ordered(), True)
         self.assertEqual(so.is_reverse(), False)
         self.assertEqual(so.get_add_sort_by(), '?o=-1')
+
+
+    def test_get_verbose_column_title_with_fallback(self):
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_settings={
+                'list_display': ('category',)
+            }
+        )
+        self.assertEqual('Category', smart_list.columns[0].get_title())
+
+    def test_get_column_from_method(self):
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_settings={
+                'list_display': ('some_display_method',)
+            }
+        )
+        self.assertEqual('Some_Display_Method', smart_list.columns[0].get_title())
