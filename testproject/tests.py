@@ -117,7 +117,6 @@ class SmartListTestCase(TestCase):
         self.assertEqual(so.is_reverse(), False)
         self.assertEqual(so.get_add_sort_by(), '?o=-1')
 
-
     def test_get_verbose_column_title_with_fallback(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
@@ -135,3 +134,23 @@ class SmartListTestCase(TestCase):
             }
         )
         self.assertEqual('Some_Display_Method', smart_list.columns[0].get_title())
+
+    def test_search(self):
+        test = SampleModel.objects.create(title='test')
+        foobar = SampleModel.objects.create(title='foobar')
+        bar = SampleModel.objects.create(title='bar')
+
+        class SampleModelListView(SmartListMixin, ListView):
+            model = SampleModel
+            list_display = ('title', 'category')
+            search_fields = ('title', )
+
+        request = self.factory.get('/smart-lists/?search=test')
+        view = SampleModelListView(request=request)
+        self.assertEqual(1, len(view.get_queryset()))
+        self.assertEqual(test, view.get_queryset()[0])
+
+        request = self.factory.get('/smart-lists/?search=bar')
+        view = SampleModelListView(request=request)
+        self.assertEqual(2, len(view.get_queryset()))
+        self.assertEqual([foobar, bar], list(view.get_queryset()))

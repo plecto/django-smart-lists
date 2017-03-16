@@ -1,5 +1,22 @@
+{% if  smart_list.search_fields %}
+		<div class="pane-title-lg">
+			<div class="pane-title-right">
+				<form action="" method="get">
+					<div class="pane-search-col">
+						<div class="search form-group">
+							<label for="id_search_input" class="sr-only">Search</label>
+							<input placeholder="Search" class="form-control" id="id_search_input" name="search" value="{{ smart_list.search_term }}">
+						</div>
+					</div>
+					<div class="pane-search-col pane-search-col-btn">
+						<button class="btn btn-search" type="submit"><span class="icon icon-search"></span>Search</button>
+					</div>
+				</form>
+			</div>
+		</div>
+{% endif %}
 <div class="col-md-12 {% if smart_list.filters %}col-lg-10{% endif %}">
-    <div class="table-responsive">
+	<div class="table-responsive">
         <table class="table table-striped">
           <thead>
             <tr>

@@ -1,7 +1,9 @@
 import six
-
+from django.db.models import Q
+from functools import reduce
 from smart_lists.exceptions import SmartListException
 from smart_lists.helpers import SmartColumn
+import operator
 
 
 class SmartListMixin(object):
@@ -12,6 +14,7 @@ class SmartListMixin(object):
 
     ordering = []  # type: List[str]
     ordering_query_parameter_name = 'o'
+    search_query_parameter_name = 'search'
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
@@ -24,7 +27,39 @@ class SmartListMixin(object):
         if filters:
             for fltr in filters:
                 qs = qs.filter(**fltr)
+        qs = self.get_search_results(qs)
         return qs
+
+    def get_search_results(self, queryset):
+        """
+        borrowed from djang-admin
+        @param queryset:
+        @return: filtered queryset
+        """
+        search_term = self.request.GET.get(self.search_query_parameter_name, None)
+
+        if search_term is None:
+            return queryset
+        # Apply keyword searches.
+        def construct_search(field_name):
+            if field_name.startswith('^'):
+                return "%s__istartswith" % field_name[1:]
+            elif field_name.startswith('='):
+                return "%s__iexact" % field_name[1:]
+            elif field_name.startswith('@'):
+                return "%s__search" % field_name[1:]
+            else:
+                return "%s__icontains" % field_name
+
+        if self.search_fields and search_term:
+            orm_lookups = [construct_search(str(search_field))
+                           for search_field in self.search_fields]
+            for bit in search_term.split():
+                or_queries = [Q(**{orm_lookup: bit})
+                              for orm_lookup in orm_lookups]
+                queryset = queryset.filter(reduce(operator.or_, or_queries))
+        return queryset
+
 
     def get_ordering(self):
         custom_order = self.request.GET.get(self.ordering_query_parameter_name)
@@ -61,6 +96,8 @@ class SmartListMixin(object):
             'smart_list_settings': {
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
+                'search_fields': self.search_fields,
+                'search_term': self.request.GET.get(self.search_query_parameter_name, ''),
                 'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, ''),
                 'ordering_query_param': self.ordering_query_parameter_name,
                 'query_params': self.request.GET
