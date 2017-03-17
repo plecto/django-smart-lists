@@ -14,7 +14,7 @@ class SmartListMixin(object):
 
     ordering = []  # type: List[str]
     ordering_query_parameter_name = 'o'
-    search_query_parameter_name = 'search'
+    search_query_parameter_name = 'q'
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
