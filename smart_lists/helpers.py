@@ -226,8 +226,8 @@ class SmartList(object):
         self.query_params = list_settings.get('query_params', {})
         self.list_display = list_settings.get('list_display')
         self.list_filter = list_settings.get('list_filter')
-        self.search_fields = list_settings.get('search_fields')
-        self.search_term = list_settings.get('search_term')
+        self.list_search = list_settings.get('list_search')
+        self.search_query_value = list_settings.get('search_query_value')
         self.ordering_query_value = list_settings.get('ordering_query_value', '')
         self.ordering_query_param = list_settings.get('ordering_query_param', 'o')
         self.columns = [

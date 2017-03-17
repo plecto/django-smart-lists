@@ -60,7 +60,6 @@ class SmartListMixin(object):
                 queryset = queryset.filter(reduce(operator.or_, or_queries))
         return queryset
 
-
     def get_ordering(self):
         custom_order = self.request.GET.get(self.ordering_query_parameter_name)
         if custom_order:
@@ -96,8 +95,8 @@ class SmartListMixin(object):
             'smart_list_settings': {
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
-                'search_fields': self.search_fields,
-                'search_term': self.request.GET.get(self.search_query_parameter_name, ''),
+                'list_search': self.search_fields,
+                'search_query_value': self.request.GET.get(self.search_query_parameter_name, ''),
                 'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, ''),
                 'ordering_query_param': self.ordering_query_parameter_name,
                 'query_params': self.request.GET

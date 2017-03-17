@@ -1,11 +1,11 @@
-{% if  smart_list.search_fields %}
+{% if  smart_list.list_search %}
 		<div class="pane-title-lg">
 			<div class="pane-title-right">
 				<form action="" method="get">
 					<div class="pane-search-col">
 						<div class="search form-group">
 							<label for="id_search_input" class="sr-only">Search</label>
-							<input placeholder="Search" class="form-control" id="id_search_input" name="search" value="{{ smart_list.search_term }}">
+							<input placeholder="Search" class="form-control" id="id_search_input" name="search" value="{{ smart_list.search_query_value }}">
 						</div>
 					</div>
 					<div class="pane-search-col pane-search-col-btn">
