@@ -13,7 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 class TitleFromModelFieldMixin(object):
     def get_title(self):
-        field = getattr(self.model, self.field_name)
+        field = self.model._meta.get_field(self.field_name)
         if self.model_field:
             return self.model_field.verbose_name.title()
         elif self.field_name == '__str__':
