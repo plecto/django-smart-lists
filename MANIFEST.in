@@ -1,1 +1,2 @@
 recursive-include smart_lists/templates *
+include README.md
