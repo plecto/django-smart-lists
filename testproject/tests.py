@@ -145,12 +145,12 @@ class SmartListTestCase(TestCase):
             list_display = ('title', 'category')
             search_fields = ('title', )
 
-        request = self.factory.get('/smart-lists/?q=test')
+        request = self.factory.get('/smart-lists/?search=test')
         view = SampleModelListView(request=request)
         self.assertEqual(1, len(view.get_queryset()))
         self.assertEqual(test, view.get_queryset()[0])
 
-        request = self.factory.get('/smart-lists/?q=bar')
+        request = self.factory.get('/smart-lists/?search=bar')
         view = SampleModelListView(request=request)
         self.assertEqual(2, len(view.get_queryset()))
         self.assertEqual([foobar, bar], list(view.get_queryset()))
