@@ -13,7 +13,10 @@ from django.utils.translation import gettext_lazy as _
 
 class TitleFromModelFieldMixin(object):
     def get_title(self):
-        field = getattr(self.model, self.field_name)
+        try:
+            field = getattr(self.model, self.field_name)
+        except AttributeError:
+            return self.field_name.title()
         if self.model_field:
             return self.model_field.verbose_name.title()
         elif self.field_name == '__str__':
@@ -43,6 +46,8 @@ class SmartListField(object):
         self.object = object
 
     def get_value(self):
+        if type(self.object) == dict:
+            return self.object.get(self.column.field_name)
         field = getattr(self.object, self.column.field_name)
         if callable(field):
             if getattr(field, 'do_not_call_in_templates', False):
@@ -177,11 +182,16 @@ class SmartColumn(TitleFromModelFieldMixin, object):
             self.order_field = self.field_name
         except FieldDoesNotExist:
             self.model_field = None
-            field = getattr(self.model, self.field_name)
-            if callable(field) and getattr(field, 'admin_order_field', False):
-                self.order_field = getattr(field, 'admin_order_field')
-            if callable(field) and getattr(field, 'alters_data', False):
-                raise SmartListException("Cannot use a function that alters data in smart list")
+            try:
+                field = getattr(self.model, self.field_name)
+                if callable(field) and getattr(field, 'admin_order_field', False):
+                    self.order_field = getattr(field, 'admin_order_field')
+                if callable(field) and getattr(field, 'alters_data', False):
+                    raise SmartListException("Cannot use a function that alters data in smart list")
+            except AttributeError:
+                self.order_field = self.field_name
+                pass  # This is most likely a .values() query set
+
 
         if self.order_field:
             self.order = SmartOrder(query_params=query_params, column_id=column_id, ordering_query_param=ordering_query_param)
@@ -232,7 +242,7 @@ class SmartList(object):
         self.ordering_query_param = list_settings.get('ordering_query_param', 'o')
         self.columns = [
             SmartColumn(self.model, field, i, self.query_params, self.ordering_query_param) for i, field in enumerate(self.list_display, start=1)
-        ] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value)]
+        ] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
         self.filters = [
             SmartFilter(self.model, field, self.query_params) for i, field in enumerate(self.list_filter, start=1)
         ] if self.list_filter else []

@@ -18,6 +18,9 @@ class SmartListMixin(object):
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
+        return self.smart_filter_queryset(qs)
+
+    def smart_filter_queryset(self, qs):
         ordering = self.get_ordering()
         if ordering:
             if isinstance(ordering, six.string_types):
