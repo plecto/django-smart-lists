@@ -33,13 +33,6 @@ class SmartListMixin(object):
                 qs = qs.filter(fltr)
         return qs
 
-    def get_search_terms(self):
-        search_terms = self.request.GET.get(self.search_query_parameter_name, '')
-        if len(search_terms) == 0:
-            return None
-        else:
-            return search_terms
-
     def get_search_filters(self):
         """
         borrowed from django-admin
