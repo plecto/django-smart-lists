@@ -27,38 +27,46 @@ class SmartListMixin(object):
         if filters:
             for fltr in filters:
                 qs = qs.filter(**fltr)
-        qs = self.get_search_results(qs)
+        search_filters = self.get_search_filters()
+        if search_filters:
+            for fltr in search_filters:
+                qs = qs.filter(fltr)
         return qs
 
-    def get_search_results(self, queryset):
+    def get_search_terms(self):
+        search_terms = self.request.GET.get(self.search_query_parameter_name, '')
+        if len(search_terms) == 0:
+            return None
+        else:
+            return search_terms
+
+    def get_search_filters(self):
         """
         borrowed from django-admin
-        @param queryset:
-        @return: filtered queryset
+        @return: list of search filters
         """
-        search_term = self.request.GET.get(self.search_query_parameter_name, None)
+        search_term = self.request.GET.get(self.search_query_parameter_name, '')
+        if len(search_term) >= 0:
+            def construct_search(field_name):
+                if field_name.startswith('^'):
+                    return "%s__istartswith" % field_name[1:]
+                elif field_name.startswith('='):
+                    return "%s__iexact" % field_name[1:]
+                elif field_name.startswith('@'):
+                    return "%s__search" % field_name[1:]
+                else:
+                    return "%s__icontains" % field_name
 
-        if search_term is None:
-            return queryset
-        # Apply keyword searches.
-        def construct_search(field_name):
-            if field_name.startswith('^'):
-                return "%s__istartswith" % field_name[1:]
-            elif field_name.startswith('='):
-                return "%s__iexact" % field_name[1:]
-            elif field_name.startswith('@'):
-                return "%s__search" % field_name[1:]
-            else:
-                return "%s__icontains" % field_name
-
-        if self.search_fields and search_term:
-            orm_lookups = [construct_search(str(search_field))
-                           for search_field in self.search_fields]
-            for bit in search_term.split():
-                or_queries = [Q(**{orm_lookup: bit})
-                              for orm_lookup in orm_lookups]
-                queryset = queryset.filter(reduce(operator.or_, or_queries))
-        return queryset
+            search_filters = []
+            if self.search_fields and search_term:
+                orm_lookups = [construct_search(str(search_field))
+                               for search_field in self.search_fields]
+                search_filters = []
+                for bit in search_term.split():
+                    or_queries = [Q(**{orm_lookup: bit})
+                                  for orm_lookup in orm_lookups]
+                    search_filters.append(reduce(operator.or_, or_queries))
+            return search_filters
 
     def get_ordering(self):
         custom_order = self.request.GET.get(self.ordering_query_parameter_name)
