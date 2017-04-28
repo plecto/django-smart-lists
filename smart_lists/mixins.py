@@ -100,9 +100,8 @@ class SmartListMixin(object):
                 'list_display': self.list_display,
                 'list_filter': self.list_filter,
                 'list_search': self.search_fields,
-                'search_query_value': self.request.GET.get(self.search_query_parameter_name, ''),
-                'ordering_query_value': self.request.GET.get(self.ordering_query_parameter_name, ''),
                 'ordering_query_param': self.ordering_query_parameter_name,
+                'search_query_param': self.search_query_parameter_name,
                 'query_params': self.request.GET
             }
         })

@@ -1,4 +1,4 @@
-{% if  smart_list.list_search %}
+{% if smart_list.list_search %}
 		<div class="pane-title-lg">
 			<div class="pane-title-right">
 				<form action="" method="get">
@@ -76,7 +76,7 @@
     <strong>By {{ filter.get_title }}:</strong>
     <ul>
         {% for value in filter.get_values %}
-        <li><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
+            <li style="{% if value.is_active %}font-weight: bold;{% endif %}"><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
         {% endfor %}
     </ul>
     {% endfor %}

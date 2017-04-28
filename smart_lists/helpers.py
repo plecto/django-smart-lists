@@ -192,7 +192,6 @@ class SmartColumn(TitleFromModelFieldMixin, object):
                 self.order_field = self.field_name
                 pass  # This is most likely a .values() query set
 
-
         if self.order_field:
             self.order = SmartOrder(query_params=query_params, column_id=column_id, ordering_query_param=ordering_query_param)
         else:
@@ -214,6 +213,17 @@ class SmartFilterValue(QueryParamsMixin, object):
             self.field_name: self.value
         })
 
+    def is_active(self):
+        if self.field_name in self.query_params:
+            selected_value = self.query_params[self.field_name]
+            if type(selected_value) == list:
+                selected_value = selected_value[0]
+            if selected_value == self.value:
+                return True
+        elif self.value is None:
+            return True
+        return False
+
 
 class SmartFilter(TitleFromModelFieldMixin, object):
     def __init__(self, model, field, query_params):
@@ -230,16 +240,18 @@ class SmartFilter(TitleFromModelFieldMixin, object):
 
 
 class SmartList(object):
-    def __init__(self, object_list, list_settings):
+    def __init__(self, object_list, query_params=None, list_display=None, list_filter=None,
+                 list_search=None, search_query_param=None, ordering_query_param=None):
         self.object_list = object_list
         self.model = object_list.model
-        self.query_params = list_settings.get('query_params', {})
-        self.list_display = list_settings.get('list_display')
-        self.list_filter = list_settings.get('list_filter')
-        self.list_search = list_settings.get('list_search')
-        self.search_query_value = list_settings.get('search_query_value')
-        self.ordering_query_value = list_settings.get('ordering_query_value', '')
-        self.ordering_query_param = list_settings.get('ordering_query_param', 'o')
+        self.query_params = query_params or {}
+        self.list_display = list_display or []
+        self.list_filter = list_filter or []
+        self.list_search = list_search or []
+        self.search_query_value = query_params.get(search_query_param, '')
+        self.search_query_param = search_query_param
+        self.ordering_query_value = query_params.get(ordering_query_param, '')
+        self.ordering_query_param = ordering_query_param
         self.columns = [
             SmartColumn(self.model, field, i, self.query_params, self.ordering_query_param) for i, field in enumerate(self.list_display, start=1)
         ] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
