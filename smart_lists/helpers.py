@@ -1,7 +1,7 @@
 import datetime
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Field
+from django.db.models import Field, BooleanField
 from django.utils.formats import localize
 from django.utils.html import format_html
 from django.utils.http import urlencode
@@ -13,17 +13,17 @@ from django.utils.translation import gettext_lazy as _
 
 class TitleFromModelFieldMixin(object):
     def get_title(self):
-        try:
-            field = getattr(self.model, self.field_name)
-        except AttributeError:
-            return self.field_name.title()
         if self.model_field:
             return self.model_field.verbose_name.title()
         elif self.field_name == '__str__':
             return self.model._meta.verbose_name.title()
-        elif callable(field) and getattr(field, 'short_description', False):
+        try:
+            field = getattr(self.model, self.field_name)
+        except AttributeError as e:
+            return self.field_name.title()
+        if callable(field) and getattr(field, 'short_description', False):
             return field.short_description
-        return self.field_name.title()
+        return self.field_name.replace("_", " ").title()
 
 
 class QueryParamsMixin(object):
@@ -233,10 +233,21 @@ class SmartFilter(TitleFromModelFieldMixin, object):
         self.query_params = query_params
 
     def get_values(self):
+        values = []
         if self.model_field.choices:
-            return [SmartFilterValue(self.field_name, _("All"), None, self.query_params)] + [
+            values = [
                 SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in self.model_field.choices
             ]
+        elif type(self.model_field) == BooleanField:
+            values = [
+                SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in (
+                    (1, _('True')),
+                    (0, _('False'))
+                )
+            ]
+
+        return [SmartFilterValue(self.field_name, _("All"), None, self.query_params)] + values
+
 
 
 class SmartList(object):
@@ -248,9 +259,9 @@ class SmartList(object):
         self.list_display = list_display or []
         self.list_filter = list_filter or []
         self.list_search = list_search or []
-        self.search_query_value = query_params.get(search_query_param, '')
+        self.search_query_value = self.query_params.get(search_query_param, '')
         self.search_query_param = search_query_param
-        self.ordering_query_value = query_params.get(ordering_query_param, '')
+        self.ordering_query_value = self.query_params.get(ordering_query_param, '')
         self.ordering_query_param = ordering_query_param
         self.columns = [
             SmartColumn(self.model, field, i, self.query_params, self.ordering_query_param) for i, field in enumerate(self.list_display, start=1)

@@ -9,7 +9,7 @@ register = template.Library()
 @register.inclusion_tag("smart_lists/smart_list.html", takes_context=True)
 def smart_list(context, object_list=None, page_obj=None, is_paginated=None, paginator=None, query_params=None,
                list_display=None, list_filter=None, list_search=None, search_query_param=None,
-               ordering_query_param=None):
+               ordering_query_param=None, grid_size=12, table_class='table-striped', table_link_class='font-weight-bold'):
     """
     Display the headers and data list together.
 
@@ -46,7 +46,19 @@ def smart_list(context, object_list=None, page_obj=None, is_paginated=None, pagi
         search_query_param=search_query_param,
         ordering_query_param=ordering_query_param
     )
-    return {'smart_list': smart_list_instance, 'page_obj': page_obj, 'is_paginated': is_paginated, 'paginator': paginator}
+
+    split_grid_small_size = int(round(grid_size * 0.25))
+    return {
+        'smart_list': smart_list_instance,
+        'page_obj': page_obj,
+        'is_paginated': is_paginated,
+        'paginator': paginator,
+        'full_width_grid': grid_size,
+        'split_grid_large': grid_size - split_grid_small_size,
+        'split_grid_small': split_grid_small_size,
+        'table_class': table_class,
+        'table_link_class': table_link_class
+    }
 
 
 @register.filter(name='split')

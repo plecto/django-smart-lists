@@ -1,85 +1,92 @@
-{% if smart_list.list_search %}
-		<div class="pane-title-lg">
-			<div class="pane-title-right">
-				<form action="" method="get">
-					<div class="pane-search-col">
-						<div class="search form-group">
-							<label for="id_search_input" class="sr-only">Search</label>
-							<input placeholder="Search" class="form-control" id="id_search_input" name="q" value="{{ smart_list.search_query_value }}">
-						</div>
-					</div>
-					<div class="pane-search-col pane-search-col-btn">
-						<button class="btn btn-search" type="submit"><span class="icon icon-search"></span>Search</button>
-					</div>
-				</form>
-			</div>
-		</div>
-{% endif %}
-<div class="col-md-12 {% if smart_list.filters %}col-lg-10{% endif %}">
-	<div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-                {% for column in smart_list.columns %}
-                    <th class="{% if forloop.last %}text-right{% endif %}">{% if column.order %}
-                            <a href="{{ column.order.get_add_sort_by }}">{{ column.get_title }}</a>
-                            {% if column.order.is_ordered %}
-                                <div class="pull-right">
-                                    {% if column.order.current_columns_length > 1 %}{{ column.order.priority }}{% endif %}
-                                    <a href="{{ column.order.get_reverse_sort_by }}">
-                                        {% if column.order.is_reverse %}
-                                            <span class="glyphicon glyphicon-sort-by-attributes-alt"></span>
-                                        {% else %}
-                                            <span class="glyphicon glyphicon-sort-by-attributes"></span>
-                                        {% endif %}
-                                    </a>
-                                    <a href="{{ column.order.get_remove_sort_by }}">X</a>
-                                </div>
+{% load i18n %}
+<div class="row">
+    {% if smart_list.list_search %}
+            <div class="pane-title-lg">
+                <div class="pane-title-right">
+                    <form action="" method="get">
+                        <div class="pane-search-col">
+                            <div class="search form-group">
+                                <label for="id_search_input" class="sr-only">Search</label>
+                                <input placeholder="Search" class="form-control" id="id_search_input" name="q" value="{{ smart_list.search_query_value }}">
+                            </div>
+                        </div>
+                        <div class="pane-search-col pane-search-col-btn">
+                            <button class="btn btn-search" type="submit"><span class="icon icon-search"></span>Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    {% endif %}
+    <div class="col-md-{{ full_width_grid }} {% if smart_list.filters %}col-lg-{{ split_grid_large }}{% endif %}">
+        <div class="table-responsive">
+            <table class="table {{ table_class }}">
+              <thead>
+                <tr>
+                    {% for column in smart_list.columns %}
+                        <th class="{% if forloop.last %}text-right{% endif %}">{% if column.order %}
+                                <a href="{{ column.order.get_add_sort_by }}" class="{{ table_link_class }}">{{ column.get_title }}</a>
+                                {% if column.order.is_ordered %}
+                                    <div class="pull-right">
+                                        {% if column.order.current_columns_length > 1 %}{{ column.order.priority }}{% endif %}
+                                        <a href="{{ column.order.get_reverse_sort_by }}">
+                                            {% if column.order.is_reverse %}
+                                                <span class="glyphicon glyphicon-sort-by-attributes-alt"></span>
+                                            {% else %}
+                                                <span class="glyphicon glyphicon-sort-by-attributes"></span>
+                                            {% endif %}
+                                        </a>
+                                        <a href="{{ column.order.get_remove_sort_by }}">X</a>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                {{ column.get_title }}
                             {% endif %}
+                        </th>
+                    {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+              {% for item in smart_list.items %}
+                <tr>
+                    {% for field in item.fields %}
+                    <td class="{% if forloop.last %}text-right{% endif %}">
+                        {% if forloop.first %}
+                            <a href="{{ field.object.get_absolute_url }}" class="{{ table_link_class }}">{{ field.get_value }}</a>
                         {% else %}
-                            {{ column.get_title }}
+                            {{ field.get_value }}
                         {% endif %}
-                    </th>
-                {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-          {% for item in smart_list.items %}
-            <tr>
-                {% for field in item.fields %}
-                <td class="{% if forloop.last %}text-right{% endif %}">
-                    {% if forloop.first %}
-                        <strong><a href="{{ field.object.get_absolute_url }}">{{ field.get_value }}</a></strong>
-                    {% else %}
-                        {{ field.get_value }}
-                    {% endif %}
-                </td>
-                {% endfor %}
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
+                    </td>
+                    {% endfor %}
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+        </div>
     </div>
-</div>
-{% if smart_list.filters %}
-<div class="col-md-12 col-lg-2">
-    <div class="table-responsive">
-        <table class="table table-striped">
-          <thead>
-            <tr>
-                <th>Filters</th>
-            </tr>
-          </thead>
-        </table>
-    </div>
-    {% for filter in smart_list.filters %}
-    <strong>By {{ filter.get_title }}:</strong>
-    <ul>
-        {% for value in filter.get_values %}
-            <li style="{% if value.is_active %}font-weight: bold;{% endif %}"><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
+    {% if smart_list.filters %}
+    <div class="col-md-{{ full_width_grid }} col-lg-{{ split_grid_small }}">
+        <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                    <th>{% trans "Filters" %}</th>
+                </tr>
+              </thead>
+            </table>
+        </div>
+        {% for filter in smart_list.filters %}
+        <strong>{{ filter.get_title }}:</strong>
+        <ul>
+            {% for value in filter.get_values %}
+                <li style="{% if value.is_active %}font-weight: bold;{% endif %}"><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
+            {% endfor %}
+        </ul>
         {% endfor %}
-    </ul>
-    {% endfor %}
+    </div>
+    {% endif %}
 </div>
-{% endif %}
-{% include 'smart_lists/pagination.html' %}
+<div class="row">
+    <div class="col-md-{{ full_width_grid }} text-center">
+        {% include 'smart_lists/pagination.html' %}
+    </div>
+</div>

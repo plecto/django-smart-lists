@@ -20,9 +20,7 @@ class SmartListTestCase(TestCase):
     def test_columns(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
-            list_settings={
-                'list_display': ('title', 'category')
-            }
+            list_display=('title', 'category')
         )
 
         self.assertEqual(len(smart_list.columns), 2)
@@ -32,24 +30,20 @@ class SmartListTestCase(TestCase):
             SmartListException,
             SmartList,
             SampleModel.objects.all(),
-            list_settings={
-                'list_display': ('delete', )
-            }
+            list_display=('delete', )
         )
 
         self.assertRaises(
             SmartListException,
             SmartList,
             SampleModel.objects.all(),
-            list_settings={
-                'list_display': ('_delete',)
-            }
+            list_display=('_delete',)
         )
 
     def test_ordering_of_columns(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
-            list_settings={
+            **{
                 'list_display': ('title', 'category', 'some_display_method', 'friendly_category')
             }
         )
@@ -120,7 +114,7 @@ class SmartListTestCase(TestCase):
     def test_get_verbose_column_title_with_fallback(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
-            list_settings={
+            **{
                 'list_display': ('category',)
             }
         )
@@ -129,7 +123,7 @@ class SmartListTestCase(TestCase):
     def test_get_column_from_method(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
-            list_settings={
+            **{
                 'list_display': ('some_display_method',)
             }
         )
