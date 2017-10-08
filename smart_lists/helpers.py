@@ -241,8 +241,8 @@ class SmartFilter(TitleFromModelFieldMixin, object):
         elif type(self.model_field) == BooleanField:
             values = [
                 SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in (
-                    (1, _('True')),
-                    (0, _('False'))
+                    (1, _('Yes')),
+                    (0, _('No'))
                 )
             ]
 
