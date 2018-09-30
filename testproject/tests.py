@@ -172,7 +172,7 @@ class SmartListTestCase(TestCase):
         smart_list = SmartList(
             SampleModel.objects.all(),
             list_display=('title', 'category'),
-            list_filter=(BlogOrNotFilter(request), )
+            list_filter=(BlogOrNotFilter(request), 'category')
         )
 
         # print(smart_list.filters)
@@ -224,7 +224,7 @@ class SmartListTestCase(TestCase):
                 return queryset
 
         class FakeView(SmartListMixin):
-            list_filter = (BlogOrNotFilter, )
+            list_filter = (BlogOrNotFilter, 'category')
 
         view = FakeView()
 

@@ -87,7 +87,7 @@ class SmartListMixin(object):
     def apply_filters(self, qs):
         for fltr in self.list_filter:
             parameter_name = fltr
-            if issubclass(fltr, SmartListFilter):
+            if type(fltr) != str and issubclass(fltr, SmartListFilter):
                 qs = fltr(self.request).queryset(qs)
             else:
                 if parameter_name in self.request.GET:
