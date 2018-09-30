@@ -1,7 +1,7 @@
 import datetime
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Field, BooleanField
+from django.db.models import Field, BooleanField, ForeignKey
 from django.utils.formats import localize
 from django.utils.html import format_html
 from django.utils.http import urlencode
@@ -9,6 +9,7 @@ from django.utils.http import urlencode
 from smart_lists.exceptions import SmartListException
 from django.utils.translation import gettext_lazy as _
 
+from smart_lists.filters import SmartListFilter
 
 
 class TitleFromModelFieldMixin(object):
@@ -226,15 +227,31 @@ class SmartFilterValue(QueryParamsMixin, object):
 
 
 class SmartFilter(TitleFromModelFieldMixin, object):
-    def __init__(self, model, field, query_params):
+    def __init__(self, model, field, query_params, object_list):
         self.model = model
-        self.field_name = field
-        self.model_field = self.model._meta.get_field(self.field_name)
+
+        # self.model_field = None
+        if isinstance(field, SmartListFilter):
+            self.field_name = field.parameter_name
+            self.model_field = field
+        else:
+            self.field_name = field
+            self.model_field = self.model._meta.get_field(self.field_name)
         self.query_params = query_params
+        self.object_list = object_list
+
+    def get_title(self):
+        if isinstance(self.model_field, SmartListFilter):
+            return self.model_field.title
+        return super(SmartFilter, self).get_title()
 
     def get_values(self):
         values = []
-        if self.model_field.choices:
+        if isinstance(self.model_field, SmartListFilter):
+            values = [
+                SmartFilterValue(self.model_field.parameter_name, choice[1], choice[0], self.query_params) for choice in self.model_field.lookups()
+            ]
+        elif self.model_field.choices:
             values = [
                 SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in self.model_field.choices
             ]
@@ -244,6 +261,12 @@ class SmartFilter(TitleFromModelFieldMixin, object):
                     (1, _('Yes')),
                     (0, _('No'))
                 )
+            ]
+        elif issubclass(type(self.model_field), ForeignKey):
+            pks = self.object_list.order_by().distinct().values_list('%s__pk' % self.field_name, flat=True)
+            qs = self.model_field.rel.model.objects.filter(pk__in=pks)
+            values = [
+                SmartFilterValue(self.field_name, obj, str(obj.pk), self.query_params) for obj in qs
             ]
 
         return [SmartFilterValue(self.field_name, _("All"), None, self.query_params)] + values
@@ -267,7 +290,7 @@ class SmartList(object):
             SmartColumn(self.model, field, i, self.query_params, self.ordering_query_param) for i, field in enumerate(self.list_display, start=1)
         ] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
         self.filters = [
-            SmartFilter(self.model, field, self.query_params) for i, field in enumerate(self.list_filter, start=1)
+            SmartFilter(self.model, field, self.query_params, self.object_list) for i, field in enumerate(self.list_filter, start=1)
         ] if self.list_filter else []
 
 

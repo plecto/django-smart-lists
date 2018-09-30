@@ -2,6 +2,7 @@ import six
 from django.db.models import Q
 from functools import reduce
 from smart_lists.exceptions import SmartListException
+from smart_lists.filters import SmartListFilter
 from smart_lists.helpers import SmartColumn
 import operator
 
@@ -26,10 +27,7 @@ class SmartListMixin(object):
             if isinstance(ordering, six.string_types):
                 ordering = (ordering,)
             qs = qs.order_by(*ordering)
-        filters = self.get_filters()
-        if filters:
-            for fltr in filters:
-                qs = qs.filter(**fltr)
+        qs = self.apply_filters(qs)
         search_filters = self.get_search_filters()
         if search_filters:
             for fltr in search_filters:
@@ -86,19 +84,22 @@ class SmartListMixin(object):
             return ordering
         return self.ordering
 
-    def get_filters(self):
-        flters = []
-        for param, value in self.request.GET.items():
-            if param in self.list_filter:
-                flters.append({param: value})
-        return flters
+    def apply_filters(self, qs):
+        for fltr in self.list_filter:
+            parameter_name = fltr
+            if issubclass(fltr, SmartListFilter):
+                qs = fltr(self.request).queryset(qs)
+            else:
+                if parameter_name in self.request.GET:
+                    qs = qs.filter(**{parameter_name: self.request.GET[parameter_name]})
+        return qs
 
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
         ctx.update({
             'smart_list_settings': {
                 'list_display': self.list_display,
-                'list_filter': self.list_filter,
+                'list_filter': [fltr(self.request) if isinstance(fltr, SmartListFilter) else fltr for fltr in self.list_filter],
                 'list_search': self.search_fields,
                 'ordering_query_param': self.ordering_query_parameter_name,
                 'search_query_param': self.search_query_parameter_name,

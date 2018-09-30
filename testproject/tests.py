@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.views.generic import ListView
 
 from smart_lists.exceptions import SmartListException
+from smart_lists.filters import SmartListFilter
 from smart_lists.helpers import SmartList, SmartOrder
 from smart_lists.mixins import SmartListMixin
 from testproject.models import SampleModel
@@ -127,7 +128,7 @@ class SmartListTestCase(TestCase):
                 'list_display': ('some_display_method',)
             }
         )
-        self.assertEqual('Some_Display_Method', smart_list.columns[0].get_title())
+        self.assertEqual('Some Display Method', smart_list.columns[0].get_title())
 
     def test_search(self):
         test = SampleModel.objects.create(title='test')
@@ -148,3 +149,91 @@ class SmartListTestCase(TestCase):
         view = SampleModelListView(request=request)
         self.assertEqual(2, len(view.get_queryset()))
         self.assertEqual([foobar, bar], list(view.get_queryset()))
+
+    def test_custom_filter_classes_parsing(self):
+        class BlogOrNotFilter(SmartListFilter):
+            parameter_name = 'blog'
+            title = 'BlogOrNot'
+
+            def lookups(self):
+                return (
+                    ('blog', 'Blog'),
+                    ('orNot', 'OR NOT!'),
+                )
+
+            def queryset(self, queryset):
+                if self.value() == 'blog':
+                    return queryset.filter(category="blog_post")
+                if self.value() == 'blog':
+                    return queryset.exclude(category="blog_post")
+                return queryset
+
+        request = self.factory.get('/smart-lists/')
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', 'category'),
+            list_filter=(BlogOrNotFilter(request), )
+        )
+
+        # print(smart_list.filters)
+        fltr = smart_list.filters[0]
+        self.assertEqual(fltr.get_title(), 'BlogOrNot')
+
+        values = fltr.get_values()
+        self.assertEqual(values[0].get_title(), 'All')
+        self.assertEqual(values[0].is_active(), True)
+        self.assertEqual(values[1].get_title(), 'Blog')
+        self.assertEqual(values[1].is_active(), False)
+        self.assertEqual(values[2].get_title(), 'OR NOT!')
+        self.assertEqual(values[2].is_active(), False)
+
+        request = self.factory.get('/smart-lists/?blog=blog')
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', 'category'),
+            list_filter=(BlogOrNotFilter(request),),
+            query_params=request.GET
+        )
+
+        fltr = smart_list.filters[0]
+        values = fltr.get_values()
+        self.assertEqual(values[0].is_active(), False)
+        self.assertEqual(values[1].is_active(), True)
+        self.assertEqual(values[2].is_active(), False)
+
+    def test_custom_filter_classes_query(self):
+        test = SampleModel.objects.create(title='test', category="blog_post")
+        foo = SampleModel.objects.create(title='foo', category="foo")
+        bar = SampleModel.objects.create(title='bar', category="bar")
+
+        class BlogOrNotFilter(SmartListFilter):
+            parameter_name = 'blog'
+            title = 'BlogOrNot'
+
+            def lookups(self):
+                return (
+                    ('blog', 'Blog'),
+                    ('orNot', 'OR NOT!'),
+                )
+
+            def queryset(self, queryset):
+                if self.value() == 'blog':
+                    return queryset.filter(category="blog_post")
+                if self.value() == 'blog':
+                    return queryset.exclude(category="blog_post")
+                return queryset
+
+        class FakeView(SmartListMixin):
+            list_filter = (BlogOrNotFilter, )
+
+        view = FakeView()
+
+        request = self.factory.get('/smart-lists/')
+        view.request = request
+        self.assertEqual(view.smart_filter_queryset(SampleModel.objects.all()).count(), 4)  # init makes one as well
+
+        request = self.factory.get('/smart-lists/?blog=blog')
+        view.request = request
+        self.assertEqual(view.smart_filter_queryset(SampleModel.objects.all()).count(), 2)  # init makes one as well
+
+
