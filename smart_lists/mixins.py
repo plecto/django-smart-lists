@@ -99,7 +99,7 @@ class SmartListMixin(object):
         ctx.update({
             'smart_list_settings': {
                 'list_display': self.list_display,
-                'list_filter': [fltr(self.request) if isinstance(fltr, SmartListFilter) else fltr for fltr in self.list_filter],
+                'list_filter': [fltr(self.request) if issubclass(fltr, SmartListFilter) else fltr for fltr in self.list_filter],
                 'list_search': self.search_fields,
                 'ordering_query_param': self.ordering_query_parameter_name,
                 'search_query_param': self.search_query_parameter_name,
