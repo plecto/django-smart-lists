@@ -264,7 +264,8 @@ class SmartFilter(TitleFromModelFieldMixin, object):
             ]
         elif issubclass(type(self.model_field), ForeignKey):
             pks = self.object_list.order_by().distinct().values_list('%s__pk' % self.field_name, flat=True)
-            qs = self.model_field.rel.model.objects.filter(pk__in=pks)
+            remote_field = self.model_field.rel if hasattr(self.model_field, 'rel') else self.model_field.remote_field
+            qs = remote_field.model.objects.filter(pk__in=pks)
             values = [
                 SmartFilterValue(self.field_name, obj, str(obj.pk), self.query_params) for obj in qs
             ]
