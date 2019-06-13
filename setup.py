@@ -3,8 +3,6 @@ import os
 from setuptools import find_packages, setup
 from smart_lists import version
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
 
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
@@ -16,7 +14,7 @@ setup(
     include_package_data=True,
     license='MIT License',
     description='Easy lists for django views',
-    long_description=README,
+    long_description='See README.md',
     url='https://github.com/plecto/django-smart-lists',
     author='Kristian Oellegaard',
     author_email='kristian@kristian.io',
