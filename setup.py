@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 from setuptools import find_packages, setup
+from smart_lists import version
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
@@ -10,7 +11,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-smart-lists',
-    version='1.0.22',
+    version=version,
     packages=find_packages(),
     include_package_data=True,
     license='MIT License',
