@@ -15,13 +15,13 @@ def smart_list(context, object_list=None, page_obj=None, is_paginated=None, pagi
 
     TODO: Do pagination inside here??
     """
-    if not object_list:
+    if object_list is None:
         object_list = context['object_list']
-    if not page_obj:
+    if page_obj is None:
         page_obj = context.get('page_obj', None)
-    if not is_paginated:
+    if is_paginated is None:
         is_paginated = context.get('is_paginated')
-    if not paginator:
+    if paginator is None:
         paginator = context.get('paginator')
 
     if query_params is None:  # required
