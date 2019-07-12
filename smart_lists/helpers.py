@@ -1,20 +1,21 @@
 import datetime
 
 from django.core.exceptions import FieldDoesNotExist
-from django.db.models import Field, BooleanField, ForeignKey
+from django.db.models import BooleanField, ForeignKey
 from django.utils.formats import localize
 from django.utils.html import format_html
 from django.utils.http import urlencode
-
-from smart_lists.exceptions import SmartListException
 from django.utils.translation import gettext_lazy as _
 
+from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
 
 
 class TitleFromModelFieldMixin(object):
     def get_title(self):
-        if self.model_field:
+        if self.label:
+            return self.label
+        elif self.model_field:
             return self.model_field.verbose_name.title()
         elif self.field_name == '__str__':
             return self.model._meta.verbose_name.title()
@@ -171,9 +172,10 @@ class SmartOrder(QueryParamsMixin, object):
 
 
 class SmartColumn(TitleFromModelFieldMixin, object):
-    def __init__(self, model, field, column_id, query_params, ordering_query_param):
+    def __init__(self, model, field, column_id, query_params, ordering_query_param, label=None):
         self.model = model
         self.field_name = field
+        self.label = label
 
         self.order_field = None
         if self.field_name.startswith("_") and self.field_name != "__str__":
@@ -273,7 +275,6 @@ class SmartFilter(TitleFromModelFieldMixin, object):
         return [SmartFilterValue(self.field_name, _("All"), None, self.query_params)] + values
 
 
-
 class SmartList(object):
     def __init__(self, object_list, query_params=None, list_display=None, list_filter=None,
                  list_search=None, search_query_param=None, ordering_query_param=None):
@@ -287,9 +288,18 @@ class SmartList(object):
         self.search_query_param = search_query_param
         self.ordering_query_value = self.query_params.get(ordering_query_param, '')
         self.ordering_query_param = ordering_query_param
-        self.columns = [
-            SmartColumn(self.model, field, i, self.query_params, self.ordering_query_param) for i, field in enumerate(self.list_display, start=1)
-        ] or [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
+
+        if list_display:
+            self.columns = []
+            for index, field in enumerate(self.list_display, start=1):
+                try:
+                    field_name, label = field
+                except (ValueError, TypeError):
+                    field_name, label = field, None
+                self.columns.append(SmartColumn(self.model, field_name, index, self.query_params, self.ordering_query_param, label))
+        else:
+            self.columns = [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
+
         self.filters = [
             SmartFilter(self.model, field, self.query_params, self.object_list) for i, field in enumerate(self.list_filter, start=1)
         ] if self.list_filter else []
