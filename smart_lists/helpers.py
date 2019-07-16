@@ -3,9 +3,10 @@ import datetime
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import BooleanField, ForeignKey
 from django.utils.formats import localize
-from django.utils.html import format_html
+from django.utils.html import format_html, escape
 from django.utils.http import urlencode
 from django.utils.translation import gettext_lazy as _
+from typing import List
 
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
@@ -48,19 +49,20 @@ class SmartListField(object):
         self.object = object
 
     def get_value(self):
+        if self.column.render_function:
+            # We don't want to escape our html
+            return self.column.render_function(self.object)
+
+        field = getattr(self.object, self.column.field_name) if self.column.field_name else None
         if type(self.object) == dict:
-            return self.object.get(self.column.field_name)
-        field = getattr(self.object, self.column.field_name)
-        if callable(field):
-            if getattr(field, 'do_not_call_in_templates', False):
-                return field
-            else:
-                return field()
+            value = self.object.get(self.column.field_name)
+        elif callable(field):
+            value = field() if getattr(field, 'do_not_call_in_templates', False) else field
         else:
             display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
-            if display_function:
-                return display_function()
-            return field
+            value = display_function() if display_function else field
+
+        return escape(value)
 
     def format(self, value):
         if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
@@ -172,12 +174,18 @@ class SmartOrder(QueryParamsMixin, object):
 
 
 class SmartColumn(TitleFromModelFieldMixin, object):
-    def __init__(self, model, field, column_id, query_params, ordering_query_param, label=None):
+    def __init__(self, model, field, column_id, query_params, ordering_query_param, label=None, render_function=None):
         self.model = model
         self.field_name = field
         self.label = label
-
+        self.render_function = render_function
         self.order_field = None
+        self.order = None
+
+        # If there is no field_name that means it is not bound to any model field
+        if not self.field_name:
+            return
+
         if self.field_name.startswith("_") and self.field_name != "__str__":
             raise SmartListException("Cannot use underscore(_) variables/functions in smart lists")
         try:
@@ -197,8 +205,6 @@ class SmartColumn(TitleFromModelFieldMixin, object):
 
         if self.order_field:
             self.order = SmartOrder(query_params=query_params, column_id=column_id, ordering_query_param=ordering_query_param)
-        else:
-            self.order = None
 
 
 class SmartFilterValue(QueryParamsMixin, object):
@@ -289,21 +295,47 @@ class SmartList(object):
         self.ordering_query_value = self.query_params.get(ordering_query_param, '')
         self.ordering_query_param = ordering_query_param
 
-        if list_display:
-            self.columns = []
-            for index, field in enumerate(self.list_display, start=1):
-                try:
-                    field_name, label = field
-                except (ValueError, TypeError):
-                    field_name, label = field, None
-                self.columns.append(SmartColumn(self.model, field_name, index, self.query_params, self.ordering_query_param, label))
-        else:
-            self.columns = [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
+        self.columns = self.get_columns()
 
         self.filters = [
             SmartFilter(self.model, field, self.query_params, self.object_list) for i, field in enumerate(self.list_filter, start=1)
         ] if self.list_filter else []
 
+    def get_columns(self):  # type: () -> List[SmartColumn]
+        """
+        Transform list_display into list of SmartColumns
+        In list_display we expect:
+         1. name of the field (string)
+         or
+         2. two element iterable in which:
+            - first element is name of the field (string) or callable
+              which returns html
+            - label for the column (string)
+        """
+
+        if not self.list_display:
+            return [SmartColumn(self.model, '__str__', 1, self.ordering_query_value, self.ordering_query_param)]
+
+        columns = []
+        for index, field in enumerate(self.list_display, start=1):
+            kwargs = {
+                'model': self.model,
+                'column_id': index,
+                'query_params': self.query_params,
+                'ordering_query_param': self.ordering_query_param,
+            }
+
+            try:
+                field, label = field
+            except (TypeError, ValueError):
+                kwargs['field'] = field
+            else:
+                if callable(field):
+                    kwargs['field'], kwargs['render_function'], kwargs['label'] = None, field, label
+                else:
+                    kwargs['field'], kwargs['label'] = field, label
+            columns.append(SmartColumn(**kwargs))
+        return columns
 
     @property
     def items(self):
