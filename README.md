@@ -26,18 +26,47 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 
 # Other features
 
-django-smart-lists supports commmon method attributes supported by django admin, such as:
+In case:
+1. You need custom column name you can pass tuple with two strings.
+   First string will indicate the name of the field second custom column label (see example below)
+2. You need column that is not bound to any model field then you can pass tuple with callable and string (column name).
+   Callable need to take one argument (model object) and it must return instance of `django.utils.safestring.SafeString`
+   Then it will be embedded into your smart list.(see example below)
+   
+   You can use `render_column_template` helper which takes template name and render it with context that contains `obj` for you. 
+   
 
 ```python
 
-class EpicModel(models.Model):
-    title = models.CharField(max_length=128)
+from smart_lists.mixins import SmartListMixin
+from smart_lists.helpers import render_column_template
+from django.template.loader import get_template
+
+
+def render_menu(obj):
+    # Do sth with object
+    print obj
+    context = {
+        'obj': obj,
+        'other_context': 'Lorem ipsum' * obj.count 
+    }
+    template = get_template('menu_template.hmtl')
+    return template.render(context)
     
-    def get_pretty_title(self):
-        return "Pretty {}".format(self.title)
-    get_pretty_title.short_description = 'Pretty Title'
-    get_pretty_title.admin_order_field = 'title'
-    
+
+class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
+    model = Account
+    paginate_by = 100
+    ordering_allowed_fields = ['company_name', 'code', 'created_date']
+    list_display = [
+        'company_name',
+        'code',
+        'created_date',
+        ('balance', 'Custom Balance Label'), # Custom label
+        (render_column_template('user_actions_template.html'), 'Actions') ,
+        (render_menu, ''), # You can pass any callable
+    ]
+```
 
 ### License
 
