@@ -345,3 +345,11 @@ class SmartList(object):
         return [
             SmartListItem(self, obj) for obj in self.object_list
         ]
+
+
+def render_column_template(template_name):
+    from django.template.loader import get_template
+    def func(obj):
+        return get_template(template_name).render({'obj': obj})
+
+    return func
