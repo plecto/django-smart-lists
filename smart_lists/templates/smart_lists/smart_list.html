@@ -53,7 +53,7 @@
                         {% if forloop.first %}
                             <a href="{{ field.object.get_absolute_url }}" class="{{ table_link_class }}">{{ field.get_value }}</a>
                         {% else %}
-                            {{ field.get_value|safe }}
+                            {{ field.get_value }}
                         {% endif %}
                     </td>
                     {% endfor %}

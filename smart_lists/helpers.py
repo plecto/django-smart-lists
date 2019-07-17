@@ -49,12 +49,18 @@ class SmartListField(object):
         self.object = object
 
     def get_value(self):
-        if self.column.render_function:
-            # We don't want to escape our html
-            return self.column.render_function(self.object)
-
         field = getattr(self.object, self.column.field_name) if self.column.field_name else None
-        if type(self.object) == dict:
+        if self.column.render_function:
+            template = self.column.render_function(self.object)
+            if not self.is_template_instance(template):
+                raise SmartListException(
+                    'Your render_function {} should return django.template.Template or django.template.backends.django.Template object instead of {}'.format(
+                        self.column.render_function.__name__,
+                        type(template),
+                    )
+                )
+            value = template.render()
+        elif type(self.object) == dict:
             value = self.object.get(self.column.field_name)
         elif callable(field):
             value = field() if getattr(field, 'do_not_call_in_templates', False) else field
@@ -62,7 +68,20 @@ class SmartListField(object):
             display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
             value = display_function() if display_function else field
 
-        return escape(value)
+        return value
+
+    def is_template_instance(self, obj):
+        """Check if given object is object of Template."""
+        from django.template import Template as Template
+        from django.template.backends.django import Template as DjangoTemplate
+        from django.template.backends.jinja2 import Template as Jinja2Template
+
+        return (
+            isinstance(obj, Template)
+            or isinstance(obj, DjangoTemplate)
+            or isinstance(obj, Jinja2Template)
+        )
+
 
     def format(self, value):
         if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
