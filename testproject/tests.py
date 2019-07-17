@@ -1,4 +1,3 @@
-from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from django.test import TestCase
 from django.views.generic import ListView
@@ -175,7 +174,6 @@ class SmartListTestCase(TestCase):
             list_filter=(BlogOrNotFilter(request), 'category')
         )
 
-        # print(smart_list.filters)
         fltr = smart_list.filters[0]
         self.assertEqual(fltr.get_title(), 'BlogOrNot')
 
@@ -236,4 +234,27 @@ class SmartListTestCase(TestCase):
         view.request = request
         self.assertEqual(view.smart_filter_queryset(SampleModel.objects.all()).count(), 2)  # init makes one as well
 
+    def test_labels_for_columns(self):
+        """Test if labels works properly."""
+        label = 'Custom column label'
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', ('category', label))
+        )
 
+        column_with_custom_label = smart_list.columns[-1]
+
+        self.assertEqual(label, column_with_custom_label.label)
+        self.assertEqual(label, column_with_custom_label.get_title())
+
+    def test_custom_html_column(self):
+        """Test custom html column works properly."""
+        render_column_function = lambda obj: '<b>Custom column redered</b>'
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', (render_column_function, 'Column label'))
+        )
+
+        smart_list_item_field_with_custom_render = smart_list.items[-1].fields()[-1].get_value()
+
+        self.assertEqual(render_column_function(SampleModel.objects.last()), smart_list_item_field_with_custom_render)
