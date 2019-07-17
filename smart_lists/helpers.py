@@ -5,6 +5,7 @@ from django.db.models import BooleanField, ForeignKey
 from django.utils.formats import localize
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
+from django.utils.safestring import SafeText
 from django.utils.translation import gettext_lazy as _
 from typing import List
 
@@ -51,15 +52,11 @@ class SmartListField(object):
     def get_value(self):
         field = getattr(self.object, self.column.field_name) if self.column.field_name else None
         if self.column.render_function:
-            template = self.column.render_function(self.object)
-            if not self.is_template_instance(template):
+            value = self.column.render_function(self.object)
+            if not isinstance(value, SafeText):
                 raise SmartListException(
-                    'Your render_function {} should return django.template.Template or django.template.backends.django.Template object instead of {}'.format(
-                        self.column.render_function.__name__,
-                        type(template),
-                    )
+                    'You need to provide instance of django.utils.safestring.SafeText not {}. Ensure that all user input was sanitized.'.format(type(value))
                 )
-            value = template.render()
         elif type(self.object) == dict:
             value = self.object.get(self.column.field_name)
         elif callable(field):
@@ -69,19 +66,6 @@ class SmartListField(object):
             value = display_function() if display_function else field
 
         return value
-
-    def is_template_instance(self, obj):
-        """Check if given object is object of Template."""
-        from django.template import Template as Template
-        from django.template.backends.django import Template as DjangoTemplate
-        from django.template.backends.jinja2 import Template as Jinja2Template
-
-        return (
-            isinstance(obj, Template)
-            or isinstance(obj, DjangoTemplate)
-            or isinstance(obj, Jinja2Template)
-        )
-
 
     def format(self, value):
         if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
