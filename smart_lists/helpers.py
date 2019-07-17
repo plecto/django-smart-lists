@@ -5,6 +5,7 @@ from django.db.models import BooleanField, ForeignKey
 from django.utils.formats import localize
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
+from django.utils.safestring import SafeText
 from django.utils.translation import gettext_lazy as _
 from typing import List
 
@@ -49,12 +50,14 @@ class SmartListField(object):
         self.object = object
 
     def get_value(self):
-        if self.column.render_function:
-            # We don't want to escape our html
-            return self.column.render_function(self.object)
-
         field = getattr(self.object, self.column.field_name) if self.column.field_name else None
-        if type(self.object) == dict:
+        if self.column.render_function:
+            value = self.column.render_function(self.object)
+            if not isinstance(value, SafeText):
+                raise SmartListException(
+                    'You need to provide instance of django.utils.safestring.SafeText not {}. Ensure that all user input was sanitized.'.format(type(value))
+                )
+        elif type(self.object) == dict:
             value = self.object.get(self.column.field_name)
         elif callable(field):
             value = field() if getattr(field, 'do_not_call_in_templates', False) else field
@@ -62,7 +65,7 @@ class SmartListField(object):
             display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
             value = display_function() if display_function else field
 
-        return escape(value)
+        return value
 
     def format(self, value):
         if isinstance(value, datetime.datetime) or isinstance(value, datetime.date):
@@ -342,3 +345,11 @@ class SmartList(object):
         return [
             SmartListItem(self, obj) for obj in self.object_list
         ]
+
+
+def render_column_template(template_name):
+    from django.template.loader import get_template
+    def func(obj):
+        return get_template(template_name).render({'obj': obj})
+
+    return func
