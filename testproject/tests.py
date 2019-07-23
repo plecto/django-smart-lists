@@ -1,5 +1,6 @@
 from django.test import RequestFactory
 from django.test import TestCase
+from django.utils.safestring import SafeText
 from django.views.generic import ListView
 
 from smart_lists.exceptions import SmartListException
@@ -249,7 +250,7 @@ class SmartListTestCase(TestCase):
 
     def test_custom_html_column(self):
         """Test custom html column works properly."""
-        render_column_function = lambda obj: '<b>Custom column redered</b>'
+        render_column_function = lambda obj: SafeText('<b>Custom column redered</b>')
         smart_list = SmartList(
             SampleModel.objects.all(),
             list_display=('title', (render_column_function, 'Column label'))
