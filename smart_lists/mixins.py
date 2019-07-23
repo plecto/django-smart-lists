@@ -41,6 +41,7 @@ class SmartListMixin(object):
         """
         search_term = self.request.GET.get(self.search_query_parameter_name, '')
         if len(search_term) >= 0:
+
             def construct_search(field_name):
                 if field_name.startswith('^'):
                     return "%s__istartswith" % field_name[1:]
@@ -53,12 +54,10 @@ class SmartListMixin(object):
 
             search_filters = []
             if self.search_fields and search_term:
-                orm_lookups = [construct_search(str(search_field))
-                               for search_field in self.search_fields]
+                orm_lookups = [construct_search(str(search_field)) for search_field in self.search_fields]
                 search_filters = []
                 for bit in search_term.split():
-                    or_queries = [Q(**{orm_lookup: bit})
-                                  for orm_lookup in orm_lookups]
+                    or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
                     search_filters.append(reduce(operator.or_, or_queries))
             return search_filters
 
@@ -75,10 +74,14 @@ class SmartListMixin(object):
                         order = int(order[1:])
                     else:
                         order = int(order)
-                    sc = SmartColumn(self.model, self.list_display[order-1], i, self.request.GET, self.ordering_query_parameter_name)
-                    ordering.append(
-                        '{}{}'.format(prefix, sc.order_field)
+                    sc = SmartColumn(
+                        self.model,
+                        self.list_display[order - 1],
+                        i,
+                        self.request.GET,
+                        self.ordering_query_parameter_name,
                     )
+                    ordering.append('{}{}'.format(prefix, sc.order_field))
                 except (ValueError, IndexError) as e:
                     raise SmartListException("Illegal ordering")
             return ordering
@@ -96,14 +99,19 @@ class SmartListMixin(object):
 
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
-        ctx.update({
-            'smart_list_settings': {
-                'list_display': self.list_display,
-                'list_filter': [fltr(self.request) if not isinstance(fltr, str) and issubclass(fltr, SmartListFilter) else fltr for fltr in self.list_filter],
-                'list_search': self.search_fields,
-                'ordering_query_param': self.ordering_query_parameter_name,
-                'search_query_param': self.search_query_parameter_name,
-                'query_params': self.request.GET
+        ctx.update(
+            {
+                'smart_list_settings': {
+                    'list_display': self.list_display,
+                    'list_filter': [
+                        fltr(self.request) if not isinstance(fltr, str) and issubclass(fltr, SmartListFilter) else fltr
+                        for fltr in self.list_filter
+                    ],
+                    'list_search': self.search_fields,
+                    'ordering_query_param': self.ordering_query_parameter_name,
+                    'search_query_param': self.search_query_parameter_name,
+                    'query_params': self.request.GET,
+                }
             }
-        })
+        )
         return ctx

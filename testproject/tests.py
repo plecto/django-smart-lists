@@ -12,41 +12,23 @@ from testproject.models import SampleModel
 
 class SmartListTestCase(TestCase):
     def setUp(self):
-        self.sample = SampleModel.objects.create(
-            title='I just love django-smart-lists!',
-            category='blog_post'
-        )
+        self.sample = SampleModel.objects.create(title='I just love django-smart-lists!', category='blog_post')
         self.factory = RequestFactory()
 
     def test_columns(self):
-        smart_list = SmartList(
-            SampleModel.objects.all(),
-            list_display=('title', 'category')
-        )
+        smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'category'))
 
         self.assertEqual(len(smart_list.columns), 2)
 
     def test_illegal_method_list_display(self):
-        self.assertRaises(
-            SmartListException,
-            SmartList,
-            SampleModel.objects.all(),
-            list_display=('delete', )
-        )
+        self.assertRaises(SmartListException, SmartList, SampleModel.objects.all(), list_display=('delete',))
 
-        self.assertRaises(
-            SmartListException,
-            SmartList,
-            SampleModel.objects.all(),
-            list_display=('_delete',)
-        )
+        self.assertRaises(SmartListException, SmartList, SampleModel.objects.all(), list_display=('_delete',))
 
     def test_ordering_of_columns(self):
         smart_list = SmartList(
             SampleModel.objects.all(),
-            **{
-                'list_display': ('title', 'category', 'some_display_method', 'friendly_category')
-            }
+            **{'list_display': ('title', 'category', 'some_display_method', 'friendly_category')}
         )
 
         self.assertEqual(smart_list.columns[0].order_field, 'title')
@@ -81,17 +63,11 @@ class SmartListTestCase(TestCase):
 
         request = self.factory.get('/smart-lists/?o=-wqdwd')
         view = SampleModelListView(request=request)
-        self.assertRaises(
-            SmartListException,
-            view.get_ordering
-        )
+        self.assertRaises(SmartListException, view.get_ordering)
 
         request = self.factory.get('/smart-lists/?o=5')
         view = SampleModelListView(request=request)
-        self.assertRaises(
-            SmartListException,
-            view.get_ordering
-        )
+        self.assertRaises(SmartListException, view.get_ordering)
 
     def test_smart_order(self):
         so = SmartOrder({'o': '1.2'}, 1, 'o')
@@ -113,21 +89,11 @@ class SmartListTestCase(TestCase):
         self.assertEqual(so.get_add_sort_by(), '?o=-1')
 
     def test_get_verbose_column_title_with_fallback(self):
-        smart_list = SmartList(
-            SampleModel.objects.all(),
-            **{
-                'list_display': ('category',)
-            }
-        )
+        smart_list = SmartList(SampleModel.objects.all(), **{'list_display': ('category',)})
         self.assertEqual('Category', smart_list.columns[0].get_title())
 
     def test_get_column_from_method(self):
-        smart_list = SmartList(
-            SampleModel.objects.all(),
-            **{
-                'list_display': ('some_display_method',)
-            }
-        )
+        smart_list = SmartList(SampleModel.objects.all(), **{'list_display': ('some_display_method',)})
         self.assertEqual('Some Display Method', smart_list.columns[0].get_title())
 
     def test_search(self):
@@ -138,7 +104,7 @@ class SmartListTestCase(TestCase):
         class SampleModelListView(SmartListMixin, ListView):
             model = SampleModel
             list_display = ('title', 'category')
-            search_fields = ('title', )
+            search_fields = ('title',)
 
         request = self.factory.get('/smart-lists/?q=test')
         view = SampleModelListView(request=request)
@@ -156,10 +122,7 @@ class SmartListTestCase(TestCase):
             title = 'BlogOrNot'
 
             def lookups(self):
-                return (
-                    ('blog', 'Blog'),
-                    ('orNot', 'OR NOT!'),
-                )
+                return (('blog', 'Blog'), ('orNot', 'OR NOT!'))
 
             def queryset(self, queryset):
                 if self.value() == 'blog':
@@ -172,7 +135,7 @@ class SmartListTestCase(TestCase):
         smart_list = SmartList(
             SampleModel.objects.all(),
             list_display=('title', 'category'),
-            list_filter=(BlogOrNotFilter(request), 'category')
+            list_filter=(BlogOrNotFilter(request), 'category'),
         )
 
         fltr = smart_list.filters[0]
@@ -191,7 +154,7 @@ class SmartListTestCase(TestCase):
             SampleModel.objects.all(),
             list_display=('title', 'category'),
             list_filter=(BlogOrNotFilter(request),),
-            query_params=request.GET
+            query_params=request.GET,
         )
 
         fltr = smart_list.filters[0]
@@ -210,10 +173,7 @@ class SmartListTestCase(TestCase):
             title = 'BlogOrNot'
 
             def lookups(self):
-                return (
-                    ('blog', 'Blog'),
-                    ('orNot', 'OR NOT!'),
-                )
+                return (('blog', 'Blog'), ('orNot', 'OR NOT!'))
 
             def queryset(self, queryset):
                 if self.value() == 'blog':
@@ -238,10 +198,7 @@ class SmartListTestCase(TestCase):
     def test_labels_for_columns(self):
         """Test if labels works properly."""
         label = 'Custom column label'
-        smart_list = SmartList(
-            SampleModel.objects.all(),
-            list_display=('title', ('category', label))
-        )
+        smart_list = SmartList(SampleModel.objects.all(), list_display=('title', ('category', label)))
 
         column_with_custom_label = smart_list.columns[-1]
 
@@ -252,8 +209,7 @@ class SmartListTestCase(TestCase):
         """Test custom html column works properly."""
         render_column_function = lambda obj: SafeText('<b>Custom column redered</b>')
         smart_list = SmartList(
-            SampleModel.objects.all(),
-            list_display=('title', (render_column_function, 'Column label'))
+            SampleModel.objects.all(), list_display=('title', (render_column_function, 'Column label'))
         )
 
         smart_list_item_field_with_custom_render = smart_list.items[-1].fields()[-1].get_value()
