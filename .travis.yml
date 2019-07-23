@@ -13,9 +13,11 @@ matrix:
 install:
   - pip install -U pip wheel
   - pip install -q Django==$DJANGO_VERSION
+  - if [[ $(python -c 'import sys; print(sys.version_info[0])') == 3 ]]; then pip install black; fi
   - python setup.py -q install
 script:
   - python manage.py test
+  - if [[ $(python -c 'import sys; print(sys.version_info[0])') == 3 ]]; then black . --check; fi
 cache: pip
 branches:
   only:

@@ -7,9 +7,22 @@ register = template.Library()
 
 
 @register.inclusion_tag("smart_lists/smart_list.html", takes_context=True)
-def smart_list(context, object_list=None, page_obj=None, is_paginated=None, paginator=None, query_params=None,
-               list_display=None, list_filter=None, list_search=None, search_query_param=None,
-               ordering_query_param=None, grid_size=12, table_class='table-striped', table_link_class='font-weight-bold'):
+def smart_list(
+    context,
+    object_list=None,
+    page_obj=None,
+    is_paginated=None,
+    paginator=None,
+    query_params=None,
+    list_display=None,
+    list_filter=None,
+    list_search=None,
+    search_query_param=None,
+    ordering_query_param=None,
+    grid_size=12,
+    table_class='table-striped',
+    table_link_class='font-weight-bold',
+):
     """
     Display the headers and data list together.
 
@@ -44,7 +57,7 @@ def smart_list(context, object_list=None, page_obj=None, is_paginated=None, pagi
         list_filter=list_filter,
         list_search=list_search,
         search_query_param=search_query_param,
-        ordering_query_param=ordering_query_param
+        ordering_query_param=ordering_query_param,
     )
 
     split_grid_small_size = int(round(grid_size * 0.25))
@@ -57,7 +70,7 @@ def smart_list(context, object_list=None, page_obj=None, is_paginated=None, pagi
         'split_grid_large': grid_size - split_grid_small_size,
         'split_grid_small': split_grid_small_size,
         'table_class': table_class,
-        'table_link_class': table_link_class
+        'table_link_class': table_link_class,
     }
 
 

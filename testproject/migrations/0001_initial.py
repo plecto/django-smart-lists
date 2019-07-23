@@ -9,8 +9,7 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
@@ -20,5 +19,5 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=128)),
                 ('category', models.CharField(choices=[('foo', 'Foo'), ('bar', 'Bar')], max_length=128)),
             ],
-        ),
+        )
     ]

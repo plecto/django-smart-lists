@@ -55,7 +55,9 @@ class SmartListField(object):
             value = self.column.render_function(self.object)
             if not isinstance(value, SafeText):
                 raise SmartListException(
-                    'You need to provide instance of django.utils.safestring.SafeText not {}. Ensure that all user input was sanitized.'.format(type(value))
+                    'You need to provide instance of django.utils.safestring.SafeText not {}. Ensure that all user input was sanitized.'.format(
+                        type(value)
+                    )
                 )
         elif type(self.object) == dict:
             value = self.object.get(self.column.field_name)
@@ -73,13 +75,13 @@ class SmartListField(object):
         return value
 
     def render(self):
-        return format_html(
-            '<td>{}</td>', self.format(self.get_value())
-        )
+        return format_html('<td>{}</td>', self.format(self.get_value()))
 
     def render_link(self):
         if not hasattr(self.object, 'get_absolute_url'):
-            raise SmartListException("Please make sure your model {} implements get_absolute_url()".format(type(self.object)))
+            raise SmartListException(
+                "Please make sure your model {} implements get_absolute_url()".format(type(self.object))
+            )
         return format_html(
             '<td><a href="{}">{}</a></td>', self.object.get_absolute_url(), self.format(self.get_value())
         )
@@ -91,9 +93,7 @@ class SmartListItem(object):
         self.object = object
 
     def fields(self):
-        return [
-            SmartListField(self, column, self.object) for column in self.smart_list.columns
-        ]
+        return [SmartListField(self, column, self.object) for column in self.smart_list.columns]
 
 
 class SmartOrder(QueryParamsMixin, object):
@@ -102,7 +102,9 @@ class SmartOrder(QueryParamsMixin, object):
         self.column_id = column_id
         self.ordering_query_param = ordering_query_param
         self.query_order = query_params.get(ordering_query_param)
-        self.current_columns = [int(col) for col in self.query_order.replace("-", "").split(".")] if self.query_order else []
+        self.current_columns = (
+            [int(col) for col in self.query_order.replace("-", "").split(".")] if self.query_order else []
+        )
         self.current_columns_length = len(self.current_columns)
 
     @property
@@ -124,13 +126,11 @@ class SmartOrder(QueryParamsMixin, object):
     def get_add_sort_by(self):
         if not self.is_ordered():
             if self.query_order:
-                return self.get_url_with_query_params({
-                    self.ordering_query_param: '{}.{}'.format(self.column_id, self.query_order)
-                })
+                return self.get_url_with_query_params(
+                    {self.ordering_query_param: '{}.{}'.format(self.column_id, self.query_order)}
+                )
             else:
-                return self.get_url_with_query_params({
-                    self.ordering_query_param: self.column_id
-                })
+                return self.get_url_with_query_params({self.ordering_query_param: self.column_id})
         elif self.current_columns_length > 1:
             new_query = []
             for column in self.query_order.split('.'):
@@ -138,13 +138,13 @@ class SmartOrder(QueryParamsMixin, object):
                 if not int(c) == self.column_id:
                     new_query.append(column)
             if not self.is_reverse() and self.current_columns[0] == self.column_id:
-                return self.get_url_with_query_params({
-                    self.ordering_query_param: '-{}.{}'.format(self.column_id, ".".join(new_query))
-                })
+                return self.get_url_with_query_params(
+                    {self.ordering_query_param: '-{}.{}'.format(self.column_id, ".".join(new_query))}
+                )
             else:
-                return self.get_url_with_query_params({
-                    self.ordering_query_param: '{}.{}'.format(self.column_id, ".".join(new_query))
-                })
+                return self.get_url_with_query_params(
+                    {self.ordering_query_param: '{}.{}'.format(self.column_id, ".".join(new_query))}
+                )
 
         else:
             return self.get_reverse_sort_by()
@@ -155,9 +155,7 @@ class SmartOrder(QueryParamsMixin, object):
             c = column.replace("-", "")
             if not int(c) == self.column_id:
                 new_query.append(column)
-        return self.get_url_with_query_params({
-            self.ordering_query_param: ".".join(new_query)
-        })
+        return self.get_url_with_query_params({self.ordering_query_param: ".".join(new_query)})
 
     def get_reverse_sort_by(self):
         new_query = []
@@ -171,9 +169,7 @@ class SmartOrder(QueryParamsMixin, object):
             else:
                 new_query.append(column)
 
-        return self.get_url_with_query_params({
-            self.ordering_query_param: ".".join(new_query)
-        })
+        return self.get_url_with_query_params({self.ordering_query_param: ".".join(new_query)})
 
 
 class SmartColumn(TitleFromModelFieldMixin, object):
@@ -207,7 +203,9 @@ class SmartColumn(TitleFromModelFieldMixin, object):
                 pass  # This is most likely a .values() query set
 
         if self.order_field:
-            self.order = SmartOrder(query_params=query_params, column_id=column_id, ordering_query_param=ordering_query_param)
+            self.order = SmartOrder(
+                query_params=query_params, column_id=column_id, ordering_query_param=ordering_query_param
+            )
 
 
 class SmartFilterValue(QueryParamsMixin, object):
@@ -221,9 +219,7 @@ class SmartFilterValue(QueryParamsMixin, object):
         return self.label
 
     def get_url(self):
-        return self.get_url_with_query_params({
-            self.field_name: self.value
-        })
+        return self.get_url_with_query_params({self.field_name: self.value})
 
     def is_active(self):
         if self.field_name in self.query_params:
@@ -260,33 +256,39 @@ class SmartFilter(TitleFromModelFieldMixin, object):
         values = []
         if isinstance(self.model_field, SmartListFilter):
             values = [
-                SmartFilterValue(self.model_field.parameter_name, choice[1], choice[0], self.query_params) for choice in self.model_field.lookups()
+                SmartFilterValue(self.model_field.parameter_name, choice[1], choice[0], self.query_params)
+                for choice in self.model_field.lookups()
             ]
         elif self.model_field.choices:
             values = [
-                SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in self.model_field.choices
+                SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params)
+                for choice in self.model_field.choices
             ]
         elif type(self.model_field) == BooleanField:
             values = [
-                SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params) for choice in (
-                    (1, _('Yes')),
-                    (0, _('No'))
-                )
+                SmartFilterValue(self.field_name, choice[1], choice[0], self.query_params)
+                for choice in ((1, _('Yes')), (0, _('No')))
             ]
         elif issubclass(type(self.model_field), ForeignKey):
             pks = self.object_list.order_by().distinct().values_list('%s__pk' % self.field_name, flat=True)
             remote_field = self.model_field.rel if hasattr(self.model_field, 'rel') else self.model_field.remote_field
             qs = remote_field.model.objects.filter(pk__in=pks)
-            values = [
-                SmartFilterValue(self.field_name, obj, str(obj.pk), self.query_params) for obj in qs
-            ]
+            values = [SmartFilterValue(self.field_name, obj, str(obj.pk), self.query_params) for obj in qs]
 
         return [SmartFilterValue(self.field_name, _("All"), None, self.query_params)] + values
 
 
 class SmartList(object):
-    def __init__(self, object_list, query_params=None, list_display=None, list_filter=None,
-                 list_search=None, search_query_param=None, ordering_query_param=None):
+    def __init__(
+        self,
+        object_list,
+        query_params=None,
+        list_display=None,
+        list_filter=None,
+        list_search=None,
+        search_query_param=None,
+        ordering_query_param=None,
+    ):
         self.object_list = object_list
         self.model = object_list.model
         self.query_params = query_params or {}
@@ -300,9 +302,14 @@ class SmartList(object):
 
         self.columns = self.get_columns()
 
-        self.filters = [
-            SmartFilter(self.model, field, self.query_params, self.object_list) for i, field in enumerate(self.list_filter, start=1)
-        ] if self.list_filter else []
+        self.filters = (
+            [
+                SmartFilter(self.model, field, self.query_params, self.object_list)
+                for i, field in enumerate(self.list_filter, start=1)
+            ]
+            if self.list_filter
+            else []
+        )
 
     def get_columns(self):  # type: () -> List[SmartColumn]
         """
@@ -342,13 +349,12 @@ class SmartList(object):
 
     @property
     def items(self):
-        return [
-            SmartListItem(self, obj) for obj in self.object_list
-        ]
+        return [SmartListItem(self, obj) for obj in self.object_list]
 
 
 def render_column_template(template_name):
     from django.template.loader import get_template
+
     def func(obj):
         return get_template(template_name).render({'obj': obj})
 

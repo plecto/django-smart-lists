@@ -2,11 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 
-CATEGORY_CHOICES = (
-    ('blog_post', _('Blog Post')),
-    ('foo', _('Foo')),
-    ('bar', _('Bar')),
-)
+CATEGORY_CHOICES = (('blog_post', _('Blog Post')), ('foo', _('Foo')), ('bar', _('Bar')))
 
 
 class SampleModel(models.Model):
