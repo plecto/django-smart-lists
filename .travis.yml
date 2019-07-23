@@ -1,0 +1,18 @@
+language: python
+dist: xenial
+python:
+  - "2.7"
+  - "3.7"
+env:
+  - DJANGO_VERSION=1.11.22
+  - DJANGO_VERSION=2.2.3
+install:
+  - pip install -U pip wheel
+  - pip install -q Django==$DJANGO_VERSION
+  - python setup.py -q install
+script:
+  - python manage.py test
+cache: pip
+branches:
+  only:
+  - master
