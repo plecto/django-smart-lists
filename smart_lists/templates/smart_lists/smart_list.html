@@ -50,8 +50,8 @@
                 <tr>
                     {% for field in item.fields %}
                     <td class="{% if forloop.last %}text-right{% endif %}">
-                        {% if forloop.first %}
-                            <a href="{{ field.object.get_absolute_url }}" class="{{ table_link_class }}">{{ field.get_value }}</a>
+                        {% if field.has_link %}
+                            <a href="{{ field.get_absolute_url }}" class="{{ table_link_class }}">{{ field.get_value }}</a>
                         {% else %}
                             {{ field.get_value }}
                         {% endif %}

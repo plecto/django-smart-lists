@@ -16,4 +16,9 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
-urlpatterns = [url(r'^admin/', admin.site.urls)]
+from testproject import views
+
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'', views.TestListView.as_view()),
+]
