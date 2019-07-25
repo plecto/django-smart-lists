@@ -12,6 +12,7 @@ exclude = '''
     | \.mypy_cache
     | \.tox
     | \.venv
+    | \.travis.yml
     | _build
     | buck-out
     | build

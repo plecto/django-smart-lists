@@ -1,5 +1,4 @@
 from django import template
-from django.utils.safestring import mark_safe
 
 from smart_lists.helpers import SmartList
 
