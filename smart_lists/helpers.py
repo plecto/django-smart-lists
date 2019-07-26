@@ -3,19 +3,23 @@ import datetime
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models import BooleanField, ForeignKey
 from django.utils.formats import localize
-from django.utils.html import format_html, escape
+from django.utils.html import format_html
 from django.utils.http import urlencode
 from django.utils.safestring import SafeText
 from django.utils.translation import gettext_lazy as _
 from typing import List
+from typing import TYPE_CHECKING
 
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
 
+if TYPE_CHECKING:
+    from typing import Union, Tuple, Text, Callable, Optional
+
 
 class TitleFromModelFieldMixin(object):
     def get_title(self):
-        if self.label:
+        if getattr(self, 'label', None):
             return self.label
         elif self.model_field:
             return self.model_field.verbose_name.title()
@@ -237,7 +241,6 @@ class SmartFilter(TitleFromModelFieldMixin, object):
     def __init__(self, model, field, query_params, object_list):
         self.model = model
 
-        # self.model_field = None
         if isinstance(field, SmartListFilter):
             self.field_name = field.parameter_name
             self.model_field = field
@@ -334,22 +337,34 @@ class SmartList(object):
                 'query_params': self.query_params,
                 'ordering_query_param': self.ordering_query_param,
             }
-
-            try:
-                field, label = field
-            except (TypeError, ValueError):
-                kwargs['field'] = field
-            else:
-                if callable(field):
-                    kwargs['field'], kwargs['render_function'], kwargs['label'] = None, field, label
-                else:
-                    kwargs['field'], kwargs['label'] = field, label
+            kwargs['field'], kwargs['render_function'], kwargs['label'] = normalize_list_display_item(field)
             columns.append(SmartColumn(**kwargs))
         return columns
 
     @property
     def items(self):
         return [SmartListItem(self, obj) for obj in self.object_list]
+
+
+def normalize_list_display_item(
+    field
+):  # type: (Union[Tuple[Callable, Text], Tuple[Text,Text], Text]) -> Tuple[Optional[Text], Optional[Callable], Optional[Text]]
+    """
+    We accept different types in list_display.
+    This function handles them and transform into required format.
+    """
+    try:
+        # Case with tuple with field_name and label
+        field_name, label = field
+        render_function = None
+    except (TypeError, ValueError):
+        # Case with only field_name
+        field_name, render_function, label = field, None, None
+    else:
+        if callable(field_name):
+            # Case with tuple with callable and label
+            render_function, field_name = field_name, render_function
+    return field_name, render_function, label
 
 
 def render_column_template(template_name):

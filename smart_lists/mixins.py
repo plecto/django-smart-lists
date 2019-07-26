@@ -3,7 +3,7 @@ from django.db.models import Q
 from functools import reduce
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
-from smart_lists.helpers import SmartColumn
+from smart_lists.helpers import SmartColumn, normalize_list_display_item
 import operator
 
 
@@ -74,12 +74,15 @@ class SmartListMixin(object):
                         order = int(order[1:])
                     else:
                         order = int(order)
+                    field_name, render_function, label = normalize_list_display_item(self.list_display[order - 1])
                     sc = SmartColumn(
-                        self.model,
-                        self.list_display[order - 1],
-                        i,
-                        self.request.GET,
-                        self.ordering_query_parameter_name,
+                        model=self.model,
+                        field=field_name,
+                        column_id=i,
+                        query_params=self.request.GET,
+                        ordering_query_param=self.ordering_query_parameter_name,
+                        label=label,
+                        render_function=render_function,
                     )
                     ordering.append('{}{}'.format(prefix, sc.order_field))
                 except (ValueError, IndexError) as e:
