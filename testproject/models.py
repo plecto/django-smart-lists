@@ -12,10 +12,9 @@ class ForeignModelWithUrl(models.Model):
     def get_absolute_url(self):
         return reverse(
             'admin:{app_label}_{model_name}_change'.format(
-                app_label=self._meta.app_label,
-                model_name=self._meta.model_name
+                app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            args=(self.id,)
+            args=(self.id,),
         )
 
 
@@ -43,8 +42,7 @@ class SampleModel(models.Model):
     def get_absolute_url(self):
         return reverse(
             'admin:{app_label}_{model_name}_change'.format(
-                app_label=self._meta.app_label,
-                model_name=self._meta.model_name
+                app_label=self._meta.app_label, model_name=self._meta.model_name
             ),
-            args=(self.id,)
+            args=(self.id,),
         )

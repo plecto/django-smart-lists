@@ -6,9 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('testproject', '0001_initial'),
-    ]
+    dependencies = [('testproject', '0001_initial')]
 
     operations = [
         migrations.CreateModel(
@@ -28,16 +26,25 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='samplemodel',
             name='category',
-            field=models.CharField(choices=[('blog_post', 'Blog Post'), ('foo', 'Foo'), ('bar', 'Bar')], max_length=128),
+            field=models.CharField(
+                choices=[('blog_post', 'Blog Post'), ('foo', 'Foo'), ('bar', 'Bar')], max_length=128
+            ),
         ),
         migrations.AddField(
             model_name='samplemodel',
             name='foreign_1',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='testproject.ForeignModelWithUrl'),
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='testproject.ForeignModelWithUrl'
+            ),
         ),
         migrations.AddField(
             model_name='samplemodel',
             name='foreign_2',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='testproject.ForeignModelWithoutUrl'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='testproject.ForeignModelWithoutUrl',
+            ),
         ),
     ]

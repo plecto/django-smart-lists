@@ -220,16 +220,16 @@ class SmartListTestCase(TestCase):
         class SampleModelListView(SmartListMixin, ListView):
             model = SampleModel
             list_display = ('title', 'foreign_1')
-            search_fields = ('title', )
+            search_fields = ('title',)
 
         foreign_1 = ForeignModelWithUrl.objects.create(title='foreign test')
         foreign_2 = ForeignModelWithoutUrl.objects.create(title='foreign test')
-        test_1 = SampleModel.objects.create(title='test', category="blog_post", foreign_1=foreign_1, foreign_2=foreign_2)
+        test_1 = SampleModel.objects.create(
+            title='test', category="blog_post", foreign_1=foreign_1, foreign_2=foreign_2
+        )
         test_2 = SampleModel.objects.create(title='test', category="blog_post", foreign_1=None, foreign_2=None)
 
-        smart_list = SmartList(
-            SampleModel.objects.all(), list_display=('title', 'foreign_1', 'foreign_2')
-        )
+        smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'foreign_1', 'foreign_2'))
         # test if link exists
         test_1_item = smart_list.items[-2]
         self.assertTrue(test_1_item.fields()[0].has_link())
