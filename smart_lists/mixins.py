@@ -1,10 +1,16 @@
+import operator
+from functools import reduce
+
 import six
 from django.db.models import Q
-from functools import reduce
+from typing import TYPE_CHECKING
+
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
 from smart_lists.helpers import SmartColumn, normalize_list_display_item
-import operator
+
+if TYPE_CHECKING:
+    from typing import Tuple, List
 
 
 class SmartListMixin(object):
@@ -100,12 +106,15 @@ class SmartListMixin(object):
                     qs = qs.filter(**{parameter_name: self.request.GET[parameter_name]})
         return qs
 
+    def get_list_display(self):
+        return self.list_display
+
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
         ctx.update(
             {
                 'smart_list_settings': {
-                    'list_display': self.list_display,
+                    'list_display': self.get_list_display(),
                     'list_filter': [
                         fltr(self.request) if not isinstance(fltr, str) and issubclass(fltr, SmartListFilter) else fltr
                         for fltr in self.list_filter
