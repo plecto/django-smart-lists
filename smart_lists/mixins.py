@@ -107,7 +107,7 @@ class SmartListMixin(object):
         return qs
 
     def get_list_display(self):
-        return self.list_display
+        return list(self.list_display)
 
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
