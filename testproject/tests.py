@@ -216,3 +216,15 @@ class SmartListTestCase(TestCase):
         smart_list_item_field_with_custom_render = smart_list.items[-1].fields()[-1].get_value()
 
         self.assertEqual(render_column_function(SampleModel.objects.last()), smart_list_item_field_with_custom_render)
+
+    def test_new_filter_clears_pagination(self):
+        request = self.factory.get('/smart-lists/?page=2&o=1&category=blog_post')
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', 'category'),
+            list_filter=('title', 'category'),
+            query_params=request.GET,
+        )
+        fltr = smart_list.filters[0]
+        url = fltr.get_values()[0].get_url()
+        self.assertEqual(set(url[1:].split('&')), set(['o=1', 'category=blog_post']))
