@@ -67,6 +67,7 @@ class SmartListField(object):
             value = self.object.get(self.column.field_name)
         elif callable(field):
             value = field() if getattr(field, 'do_not_call_in_templates', False) else field
+            value = field if getattr(field, 'do_not_call_in_templates', False) else field()
         else:
             display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
             value = display_function() if display_function else field

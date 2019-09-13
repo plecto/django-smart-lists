@@ -95,6 +95,7 @@ class SmartListTestCase(TestCase):
     def test_get_column_from_method(self):
         smart_list = SmartList(SampleModel.objects.all(), **{'list_display': ('some_display_method',)})
         self.assertEqual('Some Display Method', smart_list.columns[0].get_title())
+        self.assertEqual('I just love django-smart-lists! blog_post', smart_list.items[0].fields()[0].get_value())
 
     def test_search(self):
         test = SampleModel.objects.create(title='test')
