@@ -69,21 +69,21 @@ class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
 
 ## Development
 
-### Set up
+### Setup
 
-To set up the project locally run the below commands form the repository root:
+To set up the project locally run the below commands from the repository root:
 
 ```bash
-$ python3 -m venv .venv  # if you're on Python 2 create virtualenv in another appropraite way
+$ python3 -m venv .venv  # if you're on Python 2 create virtualenv in another, appropriate way
 $ source .venv/bin/activate
 $ pip install -r testproject/requirements.txt
-$ ./manage.py seed_data  # this will create a couple of objects to list
+$ ./manage.py seed_data  # this will create objects for list view
 $ ./manage.py runserver  
 ```
 
 Afterwards go to `http://localhost:8000` and see an example of smart list usage.
 
-> NOTE: the versions in `requirements.txt` file are not pinned. If you wish to install specific versions
+> NOTE: package versions in `requirements.txt` file are not pinned. If you wish to install specific versions
 > you need to edit the file accordingly.
 
 ### Contributing 

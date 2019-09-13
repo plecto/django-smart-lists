@@ -21,6 +21,6 @@ class SampleModelListView(SmartListMixin, ListView):
         'category',
         'some_display_method',
         (render_column_template('testproject/example_column_template.html'), 'Upper filter used for field'),
-        (example_render_function, "Time")
+        (example_render_function, "Time"),
     )
     list_filter = ("category",)

@@ -35,7 +35,6 @@ class TitleFromModelFieldMixin(object):
 
 
 class QueryParamsMixin(object):
-
     def get_url_with_query_params(self, new_query_dict, without=None):
         without = without or []
         query = dict(self.query_params).copy()

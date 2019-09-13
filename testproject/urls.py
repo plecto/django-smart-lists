@@ -18,7 +18,4 @@ from django.contrib import admin
 
 from testproject import views
 
-urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'', views.SampleModelListView.as_view())
-]
+urlpatterns = [url(r'^admin/', admin.site.urls), url(r'', views.SampleModelListView.as_view())]

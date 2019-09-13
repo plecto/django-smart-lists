@@ -4,7 +4,6 @@ from testproject.models import SampleModel, CATEGORY_CHOICES
 
 
 class Command(BaseCommand):
-
     def handle(self, *args, **options):
         for i, (category, _) in enumerate(CATEGORY_CHOICES):
             for y in range(5):
