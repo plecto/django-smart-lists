@@ -95,6 +95,7 @@ class SmartListTestCase(TestCase):
     def test_get_column_from_method(self):
         smart_list = SmartList(SampleModel.objects.all(), **{'list_display': ('some_display_method',)})
         self.assertEqual('Some Display Method', smart_list.columns[0].get_title())
+        self.assertEqual('I just love django-smart-lists! blog_post', smart_list.items[0].fields()[0].get_value())
 
     def test_search(self):
         test = SampleModel.objects.create(title='test')
@@ -215,3 +216,15 @@ class SmartListTestCase(TestCase):
         smart_list_item_field_with_custom_render = smart_list.items[-1].fields()[-1].get_value()
 
         self.assertEqual(render_column_function(SampleModel.objects.last()), smart_list_item_field_with_custom_render)
+
+    def test_new_filter_clears_pagination(self):
+        request = self.factory.get('/smart-lists/?page=2&o=1&category=blog_post')
+        smart_list = SmartList(
+            SampleModel.objects.all(),
+            list_display=('title', 'category'),
+            list_filter=('title', 'category'),
+            query_params=request.GET,
+        )
+        fltr = smart_list.filters[0]
+        url = fltr.get_values()[0].get_url()
+        self.assertEqual(set(url[1:].split('&')), set(['o=1', 'category=blog_post']))
