@@ -359,6 +359,9 @@ def normalize_list_display_item(
     """
     try:
         # Case with tuple with field_name and label
+        if isinstance(field, str):
+            # we want to avoid a situation where a string of length two (e.g. pk) will be unpacked
+            raise ValueError
         field_name, label = field
         render_function = None
     except (TypeError, ValueError):
