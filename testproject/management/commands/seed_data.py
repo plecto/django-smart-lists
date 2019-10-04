@@ -9,4 +9,4 @@ class Command(BaseCommand):
             for y in range(5):
                 title = "Example title {}{}".format(i, y)
                 SampleModel.objects.get_or_create(title=title, category=category)
-        self.stdout("Example data created successfully.")
+        self.stdout.write("Example data created successfully.")
