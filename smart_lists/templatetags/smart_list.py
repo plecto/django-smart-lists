@@ -80,7 +80,7 @@ def preserve_query_params(context, **kwargs):
     """
     Preserves query parameters.
     """
-    query_parameters = context.get(['query_params'], {}).copy()  # type: dict
+    query_parameters = context.get('query_params', {}).copy()  # type: dict
     query_parameters.update(kwargs)
     return '?' + urlencode(query_parameters)
 
