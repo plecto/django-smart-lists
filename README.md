@@ -24,7 +24,7 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 ```
 **The built-in templates are bootstrap 3 compatible - but override them easily (by positioning the apps in INSTALLED_APPS) to fit your own needs**
 
-# Other features
+## Other features
 
 In case:
 1. You need custom column name you can pass tuple with two strings.
@@ -45,7 +45,6 @@ from django.template.loader import get_template
 
 def render_menu(obj):
     # Do sth with object
-    print obj
     context = {
         'obj': obj,
         'other_context': 'Lorem ipsum' * obj.count 
@@ -68,7 +67,32 @@ class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
     ]
 ```
 
-### License
+## Development
+
+### Setup
+
+To set up the project locally run the below commands from the repository root:
+
+```bash
+$ python3 -m venv .venv  # if you're on Python 2 create virtualenv in another, appropriate way
+$ source .venv/bin/activate
+$ pip install -r testproject/requirements.txt
+$ ./manage.py seed_data  # this will create objects for list view
+$ ./manage.py runserver  
+```
+
+Afterwards go to `http://localhost:8000` and see an example of smart list usage.
+
+> NOTE: package versions in `requirements.txt` file are not pinned. If you wish to install specific versions
+> you need to edit the file accordingly.
+
+### Contributing 
+
+To contribute to this project fork the repository and make a pull request against the `master` branch.
+
+Remember to write tests for your changes!
+
+## License
 
 MIT License
 

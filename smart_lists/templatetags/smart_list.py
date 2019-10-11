@@ -1,4 +1,5 @@
 from django import template
+from six.moves.urllib_parse import urlencode
 
 from smart_lists.helpers import SmartList
 
@@ -70,7 +71,18 @@ def smart_list(
         'split_grid_small': split_grid_small_size,
         'table_class': table_class,
         'table_link_class': table_link_class,
+        'query_params': query_params,
     }
+
+
+@register.simple_tag(takes_context=True)
+def preserve_query_params(context, **kwargs):
+    """
+    Preserves query parameters.
+    """
+    query_parameters = context.get('query_params', {}).copy()  # type: dict
+    query_parameters.update(kwargs)
+    return '?' + urlencode(query_parameters)
 
 
 @register.filter(name='split')

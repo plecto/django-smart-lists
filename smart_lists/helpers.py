@@ -35,11 +35,14 @@ class TitleFromModelFieldMixin(object):
 
 
 class QueryParamsMixin(object):
-    def get_url_with_query_params(self, new_query_dict):
+    def get_url_with_query_params(self, new_query_dict, without=None):
+        without = without or []
         query = dict(self.query_params).copy()
         for key, value in query.items():
             if type(value) == list:
                 query[key] = value[0]
+            if key in without:
+                query[key] = None
         query.update(new_query_dict)
         for key, value in query.copy().items():
             if value is None:
@@ -66,7 +69,7 @@ class SmartListField(object):
         elif type(self.object) == dict:
             value = self.object.get(self.column.field_name)
         elif callable(field):
-            value = field() if getattr(field, 'do_not_call_in_templates', False) else field
+            value = field if getattr(field, 'do_not_call_in_templates', False) else field()
         else:
             display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
             value = display_function() if display_function else field
@@ -236,7 +239,8 @@ class SmartFilterValue(QueryParamsMixin, object):
         return self.label
 
     def get_url(self):
-        return self.get_url_with_query_params({self.field_name: self.value})
+        # we are clearing pagination (`page` param) when setting new filter
+        return self.get_url_with_query_params({self.field_name: self.value}, without=['page'])
 
     def is_active(self):
         if self.field_name in self.query_params:
@@ -368,6 +372,9 @@ def normalize_list_display_item(
     """
     try:
         # Case with tuple with field_name and label
+        if isinstance(field, str):
+            # we want to avoid a situation where a string of length two (e.g. pk) will be unpacked
+            raise ValueError
         field_name, label = field
         render_function = None
     except (TypeError, ValueError):

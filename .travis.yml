@@ -5,11 +5,11 @@ python:
   - "3.7"
 env:
   - DJANGO_VERSION=1.11.22
-  - DJANGO_VERSION=2.2.3
+  - DJANGO_VERSION=2.2.6
 matrix:
   exclude:
     - python: "2.7"
-      env: DJANGO_VERSION=2.2.3
+      env: DJANGO_VERSION=2.2.6
 install:
   - pip install -U pip wheel
   - pip install -q Django==$DJANGO_VERSION
