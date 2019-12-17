@@ -18,6 +18,10 @@ git-release:
 	git add ${PROJECT}/__init__.py
 	git commit -m "Bumped version to `cat ${PROJECT}/__init__.py | awk -F '("|")' '{ print($$2)}'`"
 	git tag `cat ${PROJECT}/__init__.py | awk -F '("|")' '{ print($$2)}'`
+	gitchangelog > CHANGELOG.rst
+	git add CHANGELOG.rst
+	git commit --amend --no-edit
+	git tag -f `cat ${PROJECT}/__init__.py | awk -F '("|")' '{ print($$2)}'`
 	git push
 	git push --tags
 
