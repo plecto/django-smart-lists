@@ -2,6 +2,48 @@ Changelog
 =========
 
 
+1.1.0 (2019-12-17)
+------------------
+
+New
+~~~
+- Add changelog. [Tadek Teleżyński]
+
+Fix
+~~~
+- Fix handling querysets which returns dicts (#25) [Bartłomiej
+  Biernacki]
+
+  * Fix handling querysets which returns dicts
+- Fix local env setup. [Tadek Teleżyński]
+
+Other
+~~~~~
+- Foreign keys links (#24) [Bartłomiej Biernacki]
+
+  * Automatically add links to foreign key object if they define 'get_absolute_url'
+
+  * Fixed black
+- Generate changelog during git-release. [Tadek Teleżyński]
+
+
+1.0.35 (2019-10-07)
+-------------------
+
+Fix
+~~~
+- Fix regression: unhashable type. [Tadek Teleżyński]
+
+
+1.0.34 (2019-10-07)
+-------------------
+
+Fix
+~~~
+- Fix lack of default empty dict in preserve query params. [Tadek
+  Teleżyński]
+
+
 1.0.33 (2019-10-03)
 -------------------
 
