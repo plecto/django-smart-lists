@@ -57,7 +57,6 @@ class SmartListField(object):
         self.object = object
 
     def get_value(self):
-        field = getattr(self.object, self.column.field_name) if self.column.field_name else None
         if self.column.render_function:
             value = self.column.render_function(self.object)
             if not isinstance(value, SafeText):
@@ -66,13 +65,15 @@ class SmartListField(object):
                         type(value)
                     )
                 )
-        elif type(self.object) == dict:
+        elif isinstance(self.object, dict):
             value = self.object.get(self.column.field_name)
-        elif callable(field):
-            value = field if getattr(field, 'do_not_call_in_templates', False) else field()
         else:
-            display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
-            value = display_function() if display_function else field
+            field = getattr(self.object, self.column.field_name) if self.column.field_name else None
+            if callable(field):
+                value = field if getattr(field, 'do_not_call_in_templates', False) else field()
+            else:
+                display_function = getattr(self.object, 'get_%s_display' % self.column.field_name, False)
+                value = display_function() if display_function else field
 
         return value
 

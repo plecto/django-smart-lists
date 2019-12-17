@@ -2,6 +2,7 @@ from django.test import RequestFactory
 from django.test import TestCase
 from django.utils.safestring import SafeText
 from django.views.generic import ListView
+from django.db.models import F
 
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
@@ -228,3 +229,12 @@ class SmartListTestCase(TestCase):
         fltr = smart_list.filters[0]
         url = fltr.get_values()[0].get_url()
         self.assertEqual(set(url[1:].split('&')), set(['o=1', 'category=blog_post']))
+
+    def test_queryset_returning_dict(self):
+        qs = SampleModel.objects.all().annotate(custom=F('category')).values('custom', 'title')
+        smart_list = SmartList(qs, list_display=('title', 'category'))
+
+        self.assertEqual(
+            'I just love django-smart-lists!',
+            smart_list.items[0].fields()[0].get_value(),
+        )
