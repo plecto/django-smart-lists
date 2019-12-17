@@ -7,7 +7,7 @@ from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
 from smart_lists.helpers import SmartList, SmartOrder
 from smart_lists.mixins import SmartListMixin
-from testproject.models import SampleModel
+from testproject.models import SampleModel, ForeignModelWithUrl, ForeignModelWithoutUrl
 
 
 class SmartListTestCase(TestCase):
@@ -216,6 +216,32 @@ class SmartListTestCase(TestCase):
         smart_list_item_field_with_custom_render = smart_list.items[-1].fields()[-1].get_value()
 
         self.assertEqual(render_column_function(SampleModel.objects.last()), smart_list_item_field_with_custom_render)
+
+    def test_has_link(self):
+        class SampleModelListView(SmartListMixin, ListView):
+            model = SampleModel
+            list_display = ('title', 'foreign_1')
+            search_fields = ('title',)
+
+        foreign_1 = ForeignModelWithUrl.objects.create(title='foreign test')
+        foreign_2 = ForeignModelWithoutUrl.objects.create(title='foreign test')
+        test_1 = SampleModel.objects.create(
+            title='test', category="blog_post", foreign_1=foreign_1, foreign_2=foreign_2
+        )
+        test_2 = SampleModel.objects.create(title='test', category="blog_post", foreign_1=None, foreign_2=None)
+
+        smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'foreign_1', 'foreign_2'))
+        # test if link exists
+        test_1_item = smart_list.items[-2]
+        self.assertTrue(test_1_item.fields()[0].has_link())
+        self.assertEqual('/admin/testproject/samplemodel/2/change/', test_1_item.fields()[0].get_absolute_url())
+        self.assertTrue(test_1_item.fields()[1].has_link())
+        self.assertEqual('/admin/testproject/foreignmodelwithurl/1/change/', test_1_item.fields()[1].get_absolute_url())
+        self.assertFalse(test_1_item.fields()[2].has_link())
+
+        # test there is no link on None
+        test_2_item = smart_list.items[-1]
+        self.assertFalse(test_2_item.fields()[1].has_link())
 
     def test_new_filter_clears_pagination(self):
         request = self.factory.get('/smart-lists/?page=2&o=1&category=blog_post')

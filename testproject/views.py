@@ -24,3 +24,10 @@ class SampleModelListView(SmartListMixin, ListView):
         (example_render_function, "Time"),
     )
     list_filter = ("category",)
+
+
+class TestListView(SmartListMixin, ListView):
+    model = SampleModel
+    paginate_by = 100
+    ordering_allowed_fields = ['title', 'category']
+    list_display = ['title', 'category', 'foreign_1', 'foreign_2']
