@@ -352,7 +352,7 @@ class SmartList(object):
 
 
 def normalize_list_display_item(
-    field
+    field,
 ):  # type: (Union[Tuple[Callable, Text], Tuple[Text,Text], Text]) -> Tuple[Optional[Text], Optional[Callable], Optional[Text]]
     """
     We accept different types in list_display.

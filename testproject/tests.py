@@ -235,6 +235,5 @@ class SmartListTestCase(TestCase):
         smart_list = SmartList(qs, list_display=('title', 'category'))
 
         self.assertEqual(
-            'I just love django-smart-lists!',
-            smart_list.items[0].fields()[0].get_value(),
+            'I just love django-smart-lists!', smart_list.items[0].fields()[0].get_value(),
         )
