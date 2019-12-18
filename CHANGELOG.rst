@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+1.1.1 (2019-12-18)
+------------------
+
+Fix
+~~~
+- Fix for model_field for column sometimes being none (#26) [Bartłomiej
+  Biernacki]
+
+
 1.1.0 (2019-12-17)
 ------------------
 
