@@ -97,7 +97,7 @@ class SmartListField(object):
             return True
         if self.object is None:
             return False
-        if self.column.model_field.is_relation:
+        if self.column.model_field and self.column.model_field.is_relation:
             return hasattr(self.get_value(), 'get_absolute_url')
         return False
 
