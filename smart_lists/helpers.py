@@ -86,7 +86,7 @@ class SmartListField(object):
         return format_html('<td>{}</td>', self.format(self.get_value()))
 
     def render_link(self):
-        if not self.has_link:
+        if not self.has_link():
             raise SmartListException(
                 "Please make sure your model {} implements get_absolute_url()".format(type(self.object))
             )
@@ -97,9 +97,7 @@ class SmartListField(object):
             return True
         if self.object is None:
             return False
-        if self.column.model_field and self.column.model_field.is_relation:
-            return hasattr(self.get_value(), 'get_absolute_url')
-        return False
+        return hasattr(self.get_value(), 'get_absolute_url')
 
     def get_absolute_url(self):
         if self.column.column_id == 1:
