@@ -93,11 +93,13 @@ class SmartListField(object):
         return format_html('<td><a href="{}">{}</a></td>', self.get_absolute_url(), self.format(self.get_value()))
 
     def has_link(self):
-        if self.column.column_id == 1:
-            return True
         if self.object is None:
             return False
-        return hasattr(self.get_value(), 'get_absolute_url')
+        if self.column.column_id == 1:
+            obj = self.object
+        else:
+            obj = self.get_value()
+        return hasattr(obj, 'get_absolute_url')
 
     def get_absolute_url(self):
         if self.column.column_id == 1:
