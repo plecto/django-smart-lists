@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+1.1.2 (2020-01-08)
+------------------
+- Improvements for has_link (#27) [Bartłomiej Biernacki]
+
+  * Display link even if it's not a ForeignKey but the object has get_absolute_url method
+
+  * Support smart list without details link
+
+
 1.1.1 (2019-12-18)
 ------------------
 
