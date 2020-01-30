@@ -20,6 +20,6 @@ from testproject import views
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'', views.TestListView.as_view()),
+    url(r'foreign/', views.TestListView.as_view()),
     url(r'', views.SampleModelListView.as_view()),
 ]

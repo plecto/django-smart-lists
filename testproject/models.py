@@ -17,9 +17,15 @@ class ForeignModelWithUrl(models.Model):
             args=(self.id,),
         )
 
+    def __str__(self):
+        return self.title
+
 
 class ForeignModelWithoutUrl(models.Model):
     title = models.CharField(max_length=128)
+
+    def __str__(self):
+        return self.title
 
 
 class SampleModel(models.Model):
