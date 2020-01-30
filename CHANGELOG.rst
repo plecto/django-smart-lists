@@ -2,6 +2,15 @@ Changelog
 =========
 
 
+1.1.3 (2020-01-30)
+------------------
+
+Fix
+~~~
+- Fix foreign key filters when pagination is enabled (#28) [Tadek
+  Teleżyński]
+
+
 1.1.2 (2020-01-08)
 ------------------
 - Improvements for has_link (#27) [Bartłomiej Biernacki]
