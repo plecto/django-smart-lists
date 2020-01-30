@@ -58,6 +58,7 @@ def smart_list(
         list_search=list_search,
         search_query_param=search_query_param,
         ordering_query_param=ordering_query_param,
+        view=context['view'],
     )
 
     split_grid_small_size = int(round(grid_size * 0.25))

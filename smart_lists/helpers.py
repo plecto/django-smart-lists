@@ -256,7 +256,7 @@ class SmartFilterValue(QueryParamsMixin, object):
 
 
 class SmartFilter(TitleFromModelFieldMixin, object):
-    def __init__(self, model, field, query_params, object_list):
+    def __init__(self, model, field, query_params, object_list, view):
         self.model = model
 
         if isinstance(field, SmartListFilter):
@@ -267,6 +267,7 @@ class SmartFilter(TitleFromModelFieldMixin, object):
             self.model_field = self.model._meta.get_field(self.field_name)
         self.query_params = query_params
         self.object_list = object_list
+        self.view = view
 
     def get_title(self):
         if isinstance(self.model_field, SmartListFilter):
@@ -291,7 +292,8 @@ class SmartFilter(TitleFromModelFieldMixin, object):
                 for choice in ((1, _('Yes')), (0, _('No')))
             ]
         elif issubclass(type(self.model_field), ForeignKey):
-            pks = self.object_list.order_by().distinct().values_list('%s__pk' % self.field_name, flat=True)
+            # use `self.view.object_list` in order to create filter from all objects not a paginated subset
+            pks = self.view.object_list.order_by().distinct().values_list('%s__pk' % self.field_name, flat=True)
             remote_field = self.model_field.rel if hasattr(self.model_field, 'rel') else self.model_field.remote_field
             qs = remote_field.model.objects.filter(pk__in=pks)
             values = [SmartFilterValue(self.field_name, obj, str(obj.pk), self.query_params) for obj in qs]
@@ -309,6 +311,7 @@ class SmartList(object):
         list_search=None,
         search_query_param=None,
         ordering_query_param=None,
+        view=None,
     ):
         self.object_list = object_list
         self.model = object_list.model
@@ -325,7 +328,7 @@ class SmartList(object):
 
         self.filters = (
             [
-                SmartFilter(self.model, field, self.query_params, self.object_list)
+                SmartFilter(self.model, field, self.query_params, self.object_list, view)
                 for i, field in enumerate(self.list_filter, start=1)
             ]
             if self.list_filter

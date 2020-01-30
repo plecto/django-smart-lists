@@ -15,15 +15,17 @@ def example_render_function(obj):
 class SampleModelListView(SmartListMixin, ListView):
     model = SampleModel
     paginate_by = 5
+    ordering = ['category']
     ordering_allowed_fields = ['title']
     list_display = (
         'title',
+        'foreign_1',
         'category',
         'some_display_method',
         (render_column_template('testproject/example_column_template.html'), 'Upper filter used for field'),
         (example_render_function, "Time"),
     )
-    list_filter = ("category",)
+    list_filter = ("category", 'foreign_1')
 
 
 class TestListView(SmartListMixin, ListView):
