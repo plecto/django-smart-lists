@@ -2,6 +2,14 @@ Changelog
 =========
 
 
+1.1.4 (2020-04-05)
+------------------
+
+New
+~~~
+- Add a passthrough field in the template context (#29) [Greg Dabrowski]
+
+
 1.1.3 (2020-01-30)
 ------------------
 
