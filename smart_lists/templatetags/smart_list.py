@@ -73,6 +73,7 @@ def smart_list(
         'table_class': table_class,
         'table_link_class': table_link_class,
         'query_params': query_params,
+        'extra': context.get('extra', {}),
     }
 
 

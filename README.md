@@ -22,7 +22,9 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 {% endblock %}
 
 ```
-**The built-in templates are bootstrap 3 compatible - but override them easily (by positioning the apps in INSTALLED_APPS) to fit your own needs**
+**The built-in templates are bootstrap 3 compatible - but override them easily (by positioning the apps in INSTALLED_APPS) to fit your own needs.
+  When overriding the templates you may want to add extra context variables that will be passed through to your template.
+  You can do it using the `extra` key in the context.**
 
 ## Other features
 
