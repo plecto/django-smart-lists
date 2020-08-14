@@ -63,26 +63,48 @@
             </table>
         </div>
     </div>
-    {% if smart_list.filters %}
-    <div class="col-md-{{ full_width_grid }} col-lg-{{ split_grid_small }}">
-        <div class="table-responsive">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                    <th>{% trans "Filters" %}</th>
-                </tr>
-              </thead>
-            </table>
+    {% if smart_list.filters or exports %}
+        <div class="col-md-{{ full_width_grid }} col-lg-{{ split_grid_small }}">
+            {% if smart_list.filters %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                            <th>{% trans "Filters" %}</th>
+                        </tr>
+                      </thead>
+                    </table>
+                </div>
+                {% for filter in smart_list.filters %}
+                <strong>{{ filter.get_title }}:</strong>
+                <ul>
+                    {% for value in filter.get_values %}
+                        <li style="{% if value.is_active %}font-weight: bold;{% endif %}"><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            {% endif %}
+            {% if exports %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                            <th>{% trans "Export" %}</th>
+                        </tr>
+                      </thead>
+                    </table>
+                </div>
+                <ul>
+                    {% for export in exports %}
+                        <li>
+                            <a href="{{ export.url }}">
+                                {{ export.backend.verbose_name }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
-        {% for filter in smart_list.filters %}
-        <strong>{{ filter.get_title }}:</strong>
-        <ul>
-            {% for value in filter.get_values %}
-                <li style="{% if value.is_active %}font-weight: bold;{% endif %}"><a href="{{ value.get_url }}">{{ value.get_title }}</a></li>
-            {% endfor %}
-        </ul>
-        {% endfor %}
-    </div>
     {% endif %}
 </div>
 <div class="row">

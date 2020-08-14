@@ -1,31 +1,59 @@
 import operator
-from functools import reduce
+from functools import (
+    partial,
+    reduce,
+)
 
 import six
-from django.db.models import Q
 from typing import TYPE_CHECKING
+
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.template.base import render_value_in_context
+from django.template.context import make_context
 
 from smart_lists.exceptions import SmartListException
 from smart_lists.filters import SmartListFilter
-from smart_lists.helpers import SmartColumn, normalize_list_display_item
+from smart_lists.helpers import (
+    QueryParamsMixin,
+    SmartColumn,
+    SmartList,
+    normalize_list_display_item,
+)
 
 if TYPE_CHECKING:
-    from typing import Tuple, List
+    from typing import (
+        List,
+        Tuple,
+    )
+    from smart_lists.exports import SmartListExportBackend
 
 
-class SmartListMixin(object):
+class SmartListMixin(QueryParamsMixin):
     list_display = ()  # type: Tuple[str]
     list_filter = ()  # type: Tuple[str]
     search_fields = ()  # type: Tuple[str]
+    export_backends = []  # type: List[SmartListExportBackend]
     date_hierarchy = ''
 
     ordering = []  # type: List[str]
     ordering_query_parameter_name = 'o'
     search_query_parameter_name = 'q'
+    export_query_parameter_name = 'e'
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
         return self.smart_filter_queryset(qs)
+
+    def get(self, request, *args, **kwargs):
+        if self.export_query_parameter_name in request.GET:
+            return self.handle_export(request)
+        return super(SmartListMixin, self).get(request, *args, **kwargs)
+
+    @property
+    def query_params(self):
+        return self.request.GET
 
     def smart_filter_queryset(self, qs):
         ordering = self.get_ordering()
@@ -111,19 +139,54 @@ class SmartListMixin(object):
 
     def get_context_data(self, **kwargs):
         ctx = super(SmartListMixin, self).get_context_data(**kwargs)
-        ctx.update(
-            {
-                'smart_list_settings': {
-                    'list_display': self.get_list_display(),
-                    'list_filter': [
-                        fltr(self.request) if not isinstance(fltr, str) and issubclass(fltr, SmartListFilter) else fltr
-                        for fltr in self.list_filter
-                    ],
-                    'list_search': self.search_fields,
-                    'ordering_query_param': self.ordering_query_parameter_name,
-                    'search_query_param': self.search_query_parameter_name,
-                    'query_params': self.request.GET,
-                }
-            }
-        )
+        ctx['smart_list_settings'] = self.get_smart_list_settings()
         return ctx
+
+    def get_smart_list_settings(self):
+        return {
+            'list_display': self.get_list_display(),
+            'list_filter': [
+                fltr(self.request) if not isinstance(fltr, str) and issubclass(fltr, SmartListFilter) else fltr
+                for fltr in self.list_filter
+            ],
+            'list_search': self.search_fields,
+            'ordering_query_param': self.ordering_query_parameter_name,
+            'search_query_param': self.search_query_parameter_name,
+            'query_params': self.request.GET,
+            'exports': [
+                {
+                    'url': self.get_url_with_query_params({self.export_query_parameter_name: i}),
+                    'backend': export_backend,
+                }
+                for i, export_backend in enumerate(self.export_backends)
+            ],
+        }
+
+    def handle_export(self, request):
+        try:
+            export_backend = self.export_backends[int(request.GET[self.export_query_parameter_name])]
+        except (IndexError, TypeError, ValueError):
+            return redirect(
+                request.path + self.get_url_with_query_params({}, without=[self.export_query_parameter_name])
+            )
+        else:
+            smart_list_settings = self.get_smart_list_settings()
+            smart_list_instance = SmartList(
+                self.get_queryset(),
+                query_params=smart_list_settings['query_params'],
+                list_display=smart_list_settings['list_display'],
+                list_filter=smart_list_settings['list_filter'],
+                list_search=smart_list_settings['list_search'],
+                search_query_param=smart_list_settings['search_query_param'],
+                ordering_query_param=smart_list_settings['ordering_query_param'],
+                view=self,
+            )
+            value_renderer = partial(
+                render_value_in_context, context=make_context({}, request=request, autoescape=False),
+            )
+            response = HttpResponse(
+                export_backend.get_content(smart_list_instance, value_renderer=value_renderer),
+                content_type=export_backend.content_type,
+            )
+            response['Content-Disposition'] = 'attachment; filename={}'.format(export_backend.file_name)
+            return response
