@@ -1,7 +1,9 @@
+from django.db.models import Q
 from django.utils import timezone
 from django.views.generic import ListView
 from django.utils.safestring import SafeText
 
+from smart_lists.exports import SmartListExcelExportBackend
 from smart_lists.helpers import render_column_template
 from smart_lists.mixins import SmartListMixin
 
@@ -26,6 +28,13 @@ class SampleModelListView(SmartListMixin, ListView):
         (example_render_function, "Time"),
     )
     list_filter = ("category", 'foreign_1')
+    export_backends = [
+        SmartListExcelExportBackend(
+            verbose_name='Export blog posts to Excel', file_name='blog.xlsx', extra_filters=Q(category='blog_post')
+        ),
+        SmartListExcelExportBackend(verbose_name='Export to Excel (max. 5 rows)', file_name='small.xlsx', limit=5),
+        SmartListExcelExportBackend(verbose_name='Export all to Excel', file_name='full.xlsx'),
+    ]
 
 
 class TestListView(SmartListMixin, ListView):

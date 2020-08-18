@@ -1,10 +1,14 @@
+from openpyxl import load_workbook
+from six import BytesIO
+
 from django.test import RequestFactory
 from django.test import TestCase
 from django.utils.safestring import SafeText
 from django.views.generic import ListView
-from django.db.models import F
+from django.db.models import F, Q
 
 from smart_lists.exceptions import SmartListException
+from smart_lists.exports import SmartListExcelExportBackend, SmartListExportBackend
 from smart_lists.filters import SmartListFilter
 from smart_lists.helpers import SmartList, SmartOrder
 from smart_lists.mixins import SmartListMixin
@@ -219,17 +223,10 @@ class SmartListTestCase(TestCase):
         self.assertEqual(render_column_function(SampleModel.objects.last()), smart_list_item_field_with_custom_render)
 
     def test_has_link(self):
-        class SampleModelListView(SmartListMixin, ListView):
-            model = SampleModel
-            list_display = ('title', 'foreign_1')
-            search_fields = ('title',)
-
         foreign_1 = ForeignModelWithUrl.objects.create(title='foreign test')
         foreign_2 = ForeignModelWithoutUrl.objects.create(title='foreign test')
-        test_1 = SampleModel.objects.create(
-            title='test', category="blog_post", foreign_1=foreign_1, foreign_2=foreign_2
-        )
-        test_2 = SampleModel.objects.create(title='test', category="blog_post", foreign_1=None, foreign_2=None)
+        SampleModel.objects.create(title='test', category="blog_post", foreign_1=foreign_1, foreign_2=foreign_2)
+        SampleModel.objects.create(title='test', category="blog_post", foreign_1=None, foreign_2=None)
 
         smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'foreign_1', 'foreign_2'))
         # test if link exists
@@ -262,4 +259,69 @@ class SmartListTestCase(TestCase):
 
         self.assertEqual(
             'I just love django-smart-lists!', smart_list.items[0].fields()[0].get_value(),
+        )
+
+    def test_exporting_to_excel(self):
+        SampleModel.objects.create(title='test', category='misc')
+        SampleModel.objects.create(title='retest', category='other')
+        SampleModel.objects.create(title='other')
+
+        class SampleModelListView(SmartListMixin, ListView):
+            model = SampleModel
+            list_display = ('title', 'category')
+            search_fields = ('title',)
+            export_backends = [SmartListExcelExportBackend(verbose_name='Export to Excel', file_name='accounts.xlsx')]
+
+        self.assertRedirects(
+            SampleModelListView.as_view()(request=self.factory.get('/smart-lists/?q=test&e=1&o=1')),
+            '/smart-lists/?q=test&o=1',
+            fetch_redirect_response=False,
+        )
+
+        request = self.factory.get('/smart-lists/?q=test&e=0&o=1')
+        response = SampleModelListView.as_view()(request=request)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], SmartListExcelExportBackend.content_type)
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename=accounts.xlsx')
+        wb = load_workbook(filename=BytesIO(response.content))
+        data = [[cell.value for cell in row] for row in wb.active.rows]
+        self.assertListEqual(data, [['Title', 'Category'], ['retest', 'other'], ['test', 'misc'],])
+
+
+class TestSmartListExportBackend(TestCase):
+    class DummySmartListExportBackend(SmartListExportBackend):
+
+        content_type = 'text/plain'
+
+        def get_content(self, smart_list, value_renderer):
+            rows = [';'.join(value_renderer(column.get_title()) for column in smart_list.get_columns())]
+            for item in self.get_items(smart_list):
+                rows.append(';'.join(value_renderer(field.get_value()) for field in item.fields()))
+            return '\n'.join(rows).encode()
+
+    def setUp(self):
+        super(TestSmartListExportBackend, self).setUp()
+        SampleModel.objects.create(title='First', category='blog_post')
+        SampleModel.objects.create(title='Second', category='blog_post')
+        self.smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'category'))
+
+    def test_simple_export(self):
+        backend = self.DummySmartListExportBackend(verbose_name='Test', file_name='test.csv')
+        self.assertEqual(
+            backend.get_content(self.smart_list, value_renderer=str).decode(),
+            'Title;Category\nFirst;Blog Post\nSecond;Blog Post',
+        )
+
+    def test_extra_filters(self):
+        backend = self.DummySmartListExportBackend(
+            verbose_name='Test', file_name='first.csv', extra_filters=Q(title='First')
+        )
+        self.assertEqual(
+            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Title;Category\nFirst;Blog Post'
+        )
+
+    def test_limit(self):
+        backend = self.DummySmartListExportBackend(verbose_name='Test', file_name='first.csv', limit=1)
+        self.assertEqual(
+            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Title;Category\nFirst;Blog Post'
         )

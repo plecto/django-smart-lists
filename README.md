@@ -13,14 +13,12 @@ class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
 This will give you a click-to-sort table with pagination. All you have to do is to make a template like this:
 
 ```html
-
 {% extends "base.html" %}
 {% load smart_list %}
 
 {% block content %}
     {% smart_list %}
 {% endblock %}
-
 ```
 **The built-in templates are bootstrap 3 compatible - but override them easily (by positioning the apps in INSTALLED_APPS) to fit your own needs.
   When overriding the templates you may want to add extra context variables that will be passed through to your template.
@@ -28,21 +26,29 @@ This will give you a click-to-sort table with pagination. All you have to do is 
 
 ## Other features
 
-In case:
-1. You need custom column name you can pass tuple with two strings.
+1. In case you need custom column name you can pass tuple with two strings.
    First string will indicate the name of the field second custom column label (see example below)
-2. You need column that is not bound to any model field then you can pass tuple with callable and string (column name).
+2. If you need column that is not bound to any model field then you can pass tuple with callable and string (column name).
    Callable need to take one argument (model object) and it must return instance of `django.utils.safestring.SafeString`
-   Then it will be embedded into your smart list.(see example below)
+   Then it will be embedded into your smart list.
    
-   You can use `render_column_template` helper which takes template name and render it with context that contains `obj` for you. 
-   
+   You can use `render_column_template` helper which takes template name and render it with context that contains `obj` for you.
+3. In order to allow for exporting your (possibly filtered) lists to downloadable files, define a list of `export_backends`.
+   Currently we support only the Excel file format but feel free to create your own `smart_lists.exports.SmartListExportBackend`-based ones.
+
+   You can define custom filtering for each export using the `extra_filters` argument.
+
+   A limit of rows can be set using the `limit` argument. By default there is no limit.
+
+Take a look at the example usage of advanced features.
 
 ```python
-
+from smart_lists.exports import SmartListExcelExportBackend
 from smart_lists.mixins import SmartListMixin
 from smart_lists.helpers import render_column_template
+from django.db.models import Q
 from django.template.loader import get_template
+from django.utils import timezone
 
 
 def render_menu(obj):
@@ -66,6 +72,15 @@ class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
         ('balance', 'Custom Balance Label'), # Custom label
         (render_column_template('user_actions_template.html'), 'Actions') ,
         (render_menu, ''), # You can pass any callable
+    ]
+    export_backends = [
+        SmartListExcelExportBackend(
+            verbose_name='Export new to Excel',
+            file_name='new.xlsx',
+            extra_filters=lambda: Q(created_date__date__gte=timezone.now().date()),
+        ),
+        SmartListExcelExportBackend(verbose_name='Export to Excel (max. 5 rows)', file_name='small.xlsx', limit=5),
+        SmartListExcelExportBackend(verbose_name='Export all to Excel', file_name='full.xlsx'),
     ]
 ```
 
