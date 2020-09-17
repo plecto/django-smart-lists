@@ -93,7 +93,9 @@ To set up the project locally run the below commands from the repository root:
 ```bash
 $ python3 -m venv .venv  # if you're on Python 2 create virtualenv in another, appropriate way
 $ source .venv/bin/activate
+$ pip install -r requirements.txt
 $ pip install -r testproject/requirements.txt
+$ ./manage.py test
 $ ./manage.py migrate
 $ ./manage.py seed_data  # this will create objects for list view
 $ ./manage.py runserver  

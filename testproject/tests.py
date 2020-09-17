@@ -268,7 +268,7 @@ class SmartListTestCase(TestCase):
 
         class SampleModelListView(SmartListMixin, ListView):
             model = SampleModel
-            list_display = ('title', 'category')
+            list_display = ('id', 'title', 'category')
             search_fields = ('title',)
             export_backends = [SmartListExcelExportBackend(verbose_name='Export to Excel', file_name='accounts.xlsx')]
 
@@ -285,7 +285,7 @@ class SmartListTestCase(TestCase):
         self.assertEqual(response['Content-Disposition'], 'attachment; filename=accounts.xlsx')
         wb = load_workbook(filename=BytesIO(response.content))
         data = [[cell.value for cell in row] for row in wb.active.rows]
-        self.assertListEqual(data, [['Title', 'Category'], ['retest', 'other'], ['test', 'misc'],])
+        self.assertListEqual(data, [['Id', 'Title', 'Category'], [2, 'test', 'misc'], [3, 'retest', 'other'],])
 
 
 class TestSmartListExportBackend(TestCase):
@@ -303,13 +303,13 @@ class TestSmartListExportBackend(TestCase):
         super(TestSmartListExportBackend, self).setUp()
         SampleModel.objects.create(title='First', category='blog_post')
         SampleModel.objects.create(title='Second', category='blog_post')
-        self.smart_list = SmartList(SampleModel.objects.all(), list_display=('title', 'category'))
+        self.smart_list = SmartList(SampleModel.objects.all(), list_display=('id', 'title', 'category'))
 
     def test_simple_export(self):
         backend = self.DummySmartListExportBackend(verbose_name='Test', file_name='test.csv')
         self.assertEqual(
             backend.get_content(self.smart_list, value_renderer=str).decode(),
-            'Title;Category\nFirst;Blog Post\nSecond;Blog Post',
+            'Id;Title;Category\n1;First;Blog Post\n2;Second;Blog Post',
         )
 
     def test_extra_filters(self):
@@ -317,11 +317,11 @@ class TestSmartListExportBackend(TestCase):
             verbose_name='Test', file_name='first.csv', extra_filters=Q(title='First')
         )
         self.assertEqual(
-            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Title;Category\nFirst;Blog Post'
+            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Id;Title;Category\n1;First;Blog Post'
         )
 
     def test_limit(self):
         backend = self.DummySmartListExportBackend(verbose_name='Test', file_name='first.csv', limit=1)
         self.assertEqual(
-            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Title;Category\nFirst;Blog Post'
+            backend.get_content(self.smart_list, value_renderer=str).decode(), 'Id;Title;Category\n1;First;Blog Post'
         )

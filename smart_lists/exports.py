@@ -57,7 +57,7 @@ class SmartListExcelExportBackend(SmartListExportBackend):
 
         # using a naive method of determining widths of columns
         for column_cells in ws.columns:
-            length = max(len(cell.value) for cell in column_cells)
+            length = max(len(str(cell.value)) for cell in column_cells)
             ws.column_dimensions[column_cells[0].column_letter].width = length
 
         content = six.BytesIO()

@@ -1,8 +1,6 @@
 import operator
-from functools import (
-    partial,
-    reduce,
-)
+from functools import reduce
+from numbers import Number
 
 import six
 from typing import TYPE_CHECKING
@@ -181,9 +179,14 @@ class SmartListMixin(QueryParamsMixin):
                 ordering_query_param=smart_list_settings['ordering_query_param'],
                 view=self,
             )
-            value_renderer = partial(
-                render_value_in_context, context=make_context({}, request=request, autoescape=False),
-            )
+
+            value_rendering_context = make_context({}, request=request, autoescape=False)
+
+            def value_renderer(value):
+                if isinstance(value, Number):
+                    return value
+                return render_value_in_context(value, context=value_rendering_context)
+
             response = HttpResponse(
                 export_backend.get_content(smart_list_instance, value_renderer=value_renderer),
                 content_type=export_backend.content_type,

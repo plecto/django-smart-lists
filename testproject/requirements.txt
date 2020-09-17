@@ -1,4 +1,3 @@
--r ../requirements.txt
 django<3.0
 six
 openpyxl<3.1
