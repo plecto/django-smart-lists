@@ -18,7 +18,11 @@ if TYPE_CHECKING:
 
 class SmartListExportBackend(six.with_metaclass(ABCMeta)):
     def __init__(
-        self, verbose_name, file_name, extra_filters=None, limit=None,
+        self,
+        verbose_name,
+        file_name,
+        extra_filters=None,
+        limit=None,
     ):  # type: (str, str, Union[Q, Callable[[], Q], None], Optional[int]) -> None
         self.verbose_name = verbose_name
         self.file_name = file_name

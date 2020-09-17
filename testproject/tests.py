@@ -258,7 +258,8 @@ class SmartListTestCase(TestCase):
         smart_list = SmartList(qs, list_display=('title', 'category'))
 
         self.assertEqual(
-            'I just love django-smart-lists!', smart_list.items[0].fields()[0].get_value(),
+            'I just love django-smart-lists!',
+            smart_list.items[0].fields()[0].get_value(),
         )
 
     def test_exporting_to_excel(self):
@@ -285,7 +286,14 @@ class SmartListTestCase(TestCase):
         self.assertEqual(response['Content-Disposition'], 'attachment; filename=accounts.xlsx')
         wb = load_workbook(filename=BytesIO(response.content))
         data = [[cell.value for cell in row] for row in wb.active.rows]
-        self.assertListEqual(data, [['Id', 'Title', 'Category'], [2, 'test', 'misc'], [3, 'retest', 'other'],])
+        self.assertListEqual(
+            data,
+            [
+                ['Id', 'Title', 'Category'],
+                [2, 'test', 'misc'],
+                [3, 'retest', 'other'],
+            ],
+        )
 
 
 class TestSmartListExportBackend(TestCase):
