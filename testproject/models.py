@@ -33,6 +33,8 @@ class SampleModel(models.Model):
     category = models.CharField(max_length=128, choices=CATEGORY_CHOICES)
     foreign_1 = models.ForeignKey(ForeignModelWithUrl, on_delete=models.CASCADE, null=True, blank=True)
     foreign_2 = models.ForeignKey(ForeignModelWithoutUrl, on_delete=models.CASCADE, null=True, blank=True)
+    some_date = models.DateField(null=True, blank=True)
+    some_datetime = models.DateTimeField(null=True, blank=True)
 
     def some_display_method(self):
         return "%s %s" % (self.title, self.category)
