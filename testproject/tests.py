@@ -1,3 +1,6 @@
+import datetime
+
+import pytz
 from openpyxl import load_workbook
 from six import BytesIO
 
@@ -263,13 +266,15 @@ class SmartListTestCase(TestCase):
         )
 
     def test_exporting_to_excel(self):
-        SampleModel.objects.create(title='test', category='misc')
-        SampleModel.objects.create(title='retest', category='other')
+        SampleModel.objects.create(title='test', category='misc', some_date=datetime.date(2020, 1, 2))
+        SampleModel.objects.create(
+            title='retest', category='other', some_datetime=datetime.datetime(2020, 1, 2, 12, tzinfo=pytz.UTC)
+        )
         SampleModel.objects.create(title='other')
 
         class SampleModelListView(SmartListMixin, ListView):
             model = SampleModel
-            list_display = ('id', 'title', 'category')
+            list_display = ('id', 'title', 'category', 'some_date', 'some_datetime')
             search_fields = ('title',)
             export_backends = [SmartListExcelExportBackend(verbose_name='Export to Excel', file_name='accounts.xlsx')]
 
@@ -289,9 +294,9 @@ class SmartListTestCase(TestCase):
         self.assertListEqual(
             data,
             [
-                ['Id', 'Title', 'Category'],
-                [2, 'test', 'misc'],
-                [3, 'retest', 'other'],
+                ['Id', 'Title', 'Category', 'Some Date', 'Some Datetime'],
+                [2, 'test', 'misc', datetime.datetime(2020, 1, 2), 'None'],
+                [3, 'retest', 'other', 'None', datetime.datetime(2020, 1, 2, 12)],
             ],
         )
 

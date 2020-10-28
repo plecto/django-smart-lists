@@ -1,3 +1,4 @@
+import datetime
 import operator
 from functools import reduce
 from numbers import Number
@@ -183,7 +184,7 @@ class SmartListMixin(QueryParamsMixin):
             value_rendering_context = make_context({}, request=request, autoescape=False)
 
             def value_renderer(value):
-                if isinstance(value, Number):
+                if isinstance(value, (Number, datetime.date)):
                     return value
                 return render_value_in_context(value, context=value_rendering_context)
 
