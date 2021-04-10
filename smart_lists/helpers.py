@@ -315,6 +315,7 @@ class SmartList(object):
     ):
         self.object_list = object_list
         self.model = object_list.model
+        self.model_name = self.model._meta.model_name
         self.query_params = query_params or {}
         self.list_display = list_display or []
         self.list_filter = list_filter or []
