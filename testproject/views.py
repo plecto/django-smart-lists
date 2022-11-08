@@ -35,6 +35,7 @@ class SampleModelListView(SmartListMixin, ListView):
         SmartListExcelExportBackend(verbose_name='Export to Excel (max. 5 rows)', file_name='small.xlsx', limit=5),
         SmartListExcelExportBackend(verbose_name='Export all to Excel', file_name='full.xlsx'),
     ]
+    empty_text = 'Call python ./manage.py seed_data to add some data'
 
 
 class TestListView(SmartListMixin, ListView):

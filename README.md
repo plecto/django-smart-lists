@@ -39,6 +39,7 @@ This will give you a click-to-sort table with pagination. All you have to do is 
    You can define custom filtering for each export using the `extra_filters` argument.
 
    A limit of rows can be set using the `limit` argument. By default there is no limit.
+4. You can use `empty_text` to display some text in case there isn't any data.
 
 Take a look at the example usage of advanced features.
 
@@ -82,6 +83,7 @@ class AccountListView(LoginRequiredMixin, SmartListMixin, ListView):
         SmartListExcelExportBackend(verbose_name='Export to Excel (max. 5 rows)', file_name='small.xlsx', limit=5),
         SmartListExcelExportBackend(verbose_name='Export all to Excel', file_name='full.xlsx'),
     ]
+    empty_text = 'Add some accounts to see data.'
 ```
 
 ## Development

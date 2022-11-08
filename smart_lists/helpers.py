@@ -311,6 +311,7 @@ class SmartList(object):
         list_search=None,
         search_query_param=None,
         ordering_query_param=None,
+        empty_text=None,
         view=None,
     ):
         self.object_list = object_list
@@ -324,6 +325,7 @@ class SmartList(object):
         self.search_query_param = search_query_param
         self.ordering_query_value = self.query_params.get(ordering_query_param, '')
         self.ordering_query_param = ordering_query_param
+        self.empty_text = empty_text
 
         self.columns = self.get_columns()
 

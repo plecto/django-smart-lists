@@ -40,6 +40,7 @@ class SmartListMixin(QueryParamsMixin):
     ordering_query_parameter_name = 'o'
     search_query_parameter_name = 'q'
     export_query_parameter_name = 'e'
+    empty_text = ''
 
     def get_queryset(self):
         qs = super(SmartListMixin, self).get_queryset()
@@ -159,6 +160,7 @@ class SmartListMixin(QueryParamsMixin):
                 }
                 for i, export_backend in enumerate(self.export_backends)
             ],
+            'empty_text': self.empty_text,
         }
 
     def handle_export(self, request):
