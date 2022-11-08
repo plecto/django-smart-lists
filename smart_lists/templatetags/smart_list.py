@@ -19,6 +19,7 @@ def smart_list(
     list_search=None,
     search_query_param=None,
     ordering_query_param=None,
+    empty_text=None,
     exports=None,
     grid_size=12,
     table_class='table-striped',
@@ -50,6 +51,8 @@ def smart_list(
         search_query_param = context.get('smart_list_settings', {}).get('search_query_param', 'q')
     if ordering_query_param is None:
         ordering_query_param = context.get('smart_list_settings', {}).get('ordering_query_param', 'o')
+    if empty_text is None:
+        empty_text = context.get('smart_list_settings', {}).get('empty_text', '')
     if exports is None:
         exports = context.get('smart_list_settings', {}).get('exports', [])
 
@@ -61,6 +64,7 @@ def smart_list(
         list_search=list_search,
         search_query_param=search_query_param,
         ordering_query_param=ordering_query_param,
+        empty_text=empty_text,
         view=context['view'],
     )
 

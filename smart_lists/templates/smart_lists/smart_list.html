@@ -58,6 +58,10 @@
                     </td>
                     {% endfor %}
                 </tr>
+              {% empty %}
+                  {% if smart_list.empty_text %}
+                       <tr><td colspan="100">{{ smart_list.empty_text }}</td></tr>
+                  {% endif %}
               {% endfor %}
               </tbody>
             </table>
